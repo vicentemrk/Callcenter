@@ -1,29 +1,36 @@
 .MainTodo {
     width: 100%;
+    padding: 0 16px 40px;
     display: flex;
     justify-content: center;
 }
 
+/* Máximo 800px, pero fluido: en pantallas angostas ocupa el ancho disponible */
 .MainPreguntar {
-    margin-top: 50px;
-    width: 800px;
-    height: 400px;
-    float: right;
+    margin-top: 40px;
+    width: 100%;
+    max-width: 800px;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
     border: 1px solid rgb(52, 32, 150);
-    box-shadow: 0px 0px 5px 2px rgba(78, 49, 225, 0.5);
     border-radius: 5px;
-    padding-left: 15px;
-    padding-top: 15px;
-
+    padding: 20px 20px 24px;
 }
-
 
 .InsPreguntas {
     margin: 0 auto;
-    width: 800px;
-    height: 400px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
     color: rgb(52, 32, 150);
     font-family: "DM Sans", sans-serif;
+}
+
+.InsPreguntas form > div {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .InsPreguntas label {
@@ -33,42 +40,64 @@
 
 .InsPreguntas input[type="text"] {
     display: inline-block;
-    outline: none;
     height: 25px;
     border-radius: 5px;
-    border: 1px solid rgba(78, 49, 225, 0.7);
+    border: 1px solid #4E31E1;
     width: 300px;
+    max-width: 100%;
     font-family: "DM Sans", sans-serif;
+}
+
+.InsPreguntas input[type="text"]:focus {
+    outline: 3px solid #4E31E1;
+    outline-offset: 2px;
+    border-color: #4E31E1;
 }
 
 .InsPreguntas textarea {
     display: block;
     border-radius: 5px;
-    width: 675px;
-    height: 250px;
-    resize: none;
-    border: 1px solid rgba(78, 49, 225, 0.7);
-    outline: none;
+    width: 100%;
+    max-width: 100%;
+    height: clamp(180px, 32vh, 300px);
+    min-height: 180px;
+    padding: 10px;
+    resize: vertical;
+    border: 1px solid #4E31E1;
     font-family: "DM Sans", sans-serif;
 }
 
 .InsPreguntas textarea:focus {
-    border: 1px solid rgba(78, 49, 225, 0.7);
+    outline: 3px solid #4E31E1;
+    outline-offset: 2px;
+    border-color: #4E31E1;
 }
-
 
 .InsPreguntas input[type="submit"] {
     display: block;
     cursor: pointer;
     width: 200px;
-    height: 40px;
-    box-shadow: 0px 0px 8px 0px rgba(52, 32, 150, 0.7);
+    max-width: 100%;
+    height: auto;
+    min-height: 40px;
+    padding: 10px 16px;
     border-radius: 2px;
     font-weight: bold;
     background-color: #673de6;
-    border: none;
+    border: 1px solid #4E31E1;
     color: white;
     margin-top: 15px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.InsPreguntas input[type="submit"]:hover {
+    background-color: #4E31E1;
+    border-color: #3b22b8;
+}
+
+.InsPreguntas input[type="submit"]:focus-visible {
+    outline: 2px solid #4E31E1;
+    outline-offset: 2px;
 }
 
 #TituloMod{
@@ -76,10 +105,36 @@
     font-family: "DM Sans", sans-serif;
     color: rgb(52, 32, 150);
     margin-top: 15px;
+    padding: 0 16px;
 }
 
 .Container {
     margin: 0 auto;
     max-width: 1200px;
     margin-top: 25px;
+}
+
+@media (max-width: 600px) {
+    .MainTodo {
+        padding: 0 10px 28px;
+    }
+
+    .MainPreguntar {
+        margin-top: 20px;
+        padding: 14px;
+    }
+
+    .InsPreguntas textarea {
+        height: 170px;
+        min-height: 170px;
+    }
+
+    .InsPreguntas input[type="submit"] {
+        width: 100%;
+    }
+
+    #TituloMod {
+        font-size: 1.5rem;
+        margin-top: 18px;
+    }
 }

@@ -4,10 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        /* Tema: se resuelve antes de cargar cualquier CSS para evitar el
+           parpadeo (FOUC). La elección guardada gana sobre el sistema. */
+        (function () {
+            var tema = null;
+            try { tema = window.localStorage.getItem('tema'); } catch (e) { tema = null; }
+            if (tema !== 'dark' && tema !== 'light') {
+                try {
+                    tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                } catch (e) {
+                    tema = 'light';
+                }
+            }
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'estiloHeader.css' %}?v=20261011-footer">
+    <link rel="stylesheet" href="{% static 'estiloHeader.css' %}?v=20261026-rol">
     <title>{% block title %}Call Center Gamer{% endblock %}</title>
     {% block links %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'tema.css' %}?v=20261105-tema">
+    <script src="{% static 'tema.js' %}" defer></script>
 </head>
 <body>
     <nav class="MainNav">
@@ -55,6 +73,14 @@
                     <li><a href="{% url 'Login' %}"><i class="fas fa-sign-in-alt"></i> Ingresar</a></li>
                     <li><a href="{% url 'Register' %}"><i class="fas fa-user-plus"></i> Registrarse</a></li>
                 {% endif %}
+                <li>
+                    <button type="button" class="tema-toggle" data-tema-toggle
+                            aria-pressed="false"
+                            title="Activar modo oscuro"
+                            aria-label="Activar modo oscuro">
+                        <i class="fas fa-moon" aria-hidden="true"></i>
+                    </button>
+                </li>
             </ul>
         </div>
     </nav>

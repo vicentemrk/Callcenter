@@ -1,0 +1,1348 @@
+/* ============================================================================
+   tema.css — Modo oscuro de CallCenterGamer
+   ----------------------------------------------------------------------------
+   Cómo funciona:
+   - El tema activo se guarda en <html data-theme="dark|light"> (lo define un
+     script mínimo en el <head> para evitar el parpadeo inicial).
+   - TODOS los overrides del modo oscuro viven dentro de html[data-theme="dark"],
+     por lo que el tema claro mantiene exactamente el diseño original.
+   - Las variables de color se declaran únicamente en el ámbito oscuro.
+   - El botón .tema-toggle se estiliza para ambos temas porque es interfaz nueva.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. Variables y color-scheme
+   color-scheme hace que <select>, checkboxes, barras de desplazamiento y
+   controles nativos se dibujen con la paleta correcta del navegador.
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] {
+    color-scheme: dark;
+
+    /* Base */
+    --bg: #12121a;
+    --bg-soft: #171722;
+    --surface: #1c1c28;
+    --surface-2: #232334;
+    --surface-3: #2a2a3d;
+    --border: #2e2e42;
+    --border-soft: #26263a;
+
+    /* Texto */
+    --text: #e8e8f0;
+    --text-muted: #a8a8bd;
+
+    /* Acento violeta de la marca */
+    --accent: #7c5cff;
+    --accent-soft: #b9a8ff;
+    --accent-deep: #4e31e1;
+    --accent-solid: #5b3ce6;
+    /* Relleno sólido equivalente al antiguo tinte translúcido */
+    --accent-tint: #2b2547;
+
+    background-color: var(--bg);
+}
+
+html[data-theme="light"] {
+    color-scheme: light;
+}
+
+/* Transición suave al alternar el tema (no cambia ningún color en claro) */
+body {
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ---------------------------------------------------------------------------
+   2. Botón sol / luna de la barra de navegación
+   Visible en todas las páginas porque vive en componentes/header.html.
+   ------------------------------------------------------------------------ */
+.tema-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #8f7bff;
+    border-radius: 50%;
+    background-color: #5f45e8;
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9em;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.tema-toggle:hover {
+    background-color: #7057f0;
+    border-color: #b9a8ff;
+    color: #ffffff;
+}
+
+.tema-toggle:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Sin animaciones para quien las haya desactivado en su sistema */
+@media (prefers-reduced-motion: reduce) {
+    .tema-toggle,
+    body {
+        transition: none;
+    }
+
+    .tema-toggle:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .tema-toggle {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   3. Base de la página y barra de navegación
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] body {
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .MainNav {
+    background-color: #1b1b2b;
+    border-bottom: 1px solid #3a2a7a;
+}
+
+html[data-theme="dark"] #logo:hover {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] #NavbarIzq ul li a:hover,
+html[data-theme="dark"] #NavbarDer ul li a:hover,
+html[data-theme="dark"] .logout-btn:hover {
+    background-color: #2a2a3d;
+}
+
+/* Badges de rol sobre la navbar violeta */
+html[data-theme="dark"] .rol-admin {
+    background-color: #9b1c1c;
+    color: #ffecec;
+}
+
+html[data-theme="dark"] .rol-tecnico {
+    background-color: #0f766e;
+    color: #e6fffb;
+}
+
+/* ---------------------------------------------------------------------------
+   4. Footer del sitio
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .site-footer {
+    background-color: #171728;
+    border-color: rgba(124, 92, 255, 0.28);
+    border-top-color: #25c2b5;
+}
+
+html[data-theme="dark"] .footer-section p,
+html[data-theme="dark"] .footer-copyright {
+    color: #cfd3e6;
+}
+
+html[data-theme="dark"] .footer-copyright {
+    color: var(--text-muted);
+    border-left-color: rgba(255, 255, 255, 0.14);
+}
+
+@media (max-width: 900px) {
+    html[data-theme="dark"] .footer-copyright {
+        border-top-color: rgba(255, 255, 255, 0.14);
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   5. Scrollbars y selección de texto
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-soft);
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #383850;
+    border-radius: 6px;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #4c4c6b;
+}
+
+html[data-theme="dark"] ::selection {
+    background-color: #4a3a8f;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] select {
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 4px 8px;
+}
+
+html[data-theme="dark"] input[type="checkbox"],
+html[data-theme="dark"] input[type="radio"] {
+    accent-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+   6. Landing (online/templates/index.html + estiloHeader.css)
+   .Banner, .contRight, .mainCard, .iCard, .dCard, .finalBody
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .Banner {
+    background-color: #150f2e;
+}
+
+html[data-theme="dark"] .contRight h1 {
+    color: #f3f0ff;
+}
+
+html[data-theme="dark"] .contRight p {
+    color: #c6c1e0;
+}
+
+html[data-theme="dark"] #btnIngresar {
+    background-color: var(--accent-solid);
+    border-color: #7c5cff;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] #btnIngresar:hover {
+    background-color: var(--accent);
+    border-color: #b9a8ff;
+}
+
+html[data-theme="dark"] .dCard h1 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .dCard p {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .finalBody {
+    background-color: var(--bg-soft);
+}
+
+html[data-theme="dark"] .finalBody h1 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .finalBody p {
+    color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   7. Pantalla de inicio del cliente (online/static/inicio.css)
+   .MainPreguntar, .Preguntas, .MainPreguntas, .InsPreguntas y bloque IA
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .MainPreguntar,
+html[data-theme="dark"] .MainPreguntas {
+    background-color: var(--surface);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .Preguntas {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    border-left-color: #5b4b9e;
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .Preguntas:hover {
+    background-color: var(--surface-3);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .Preguntas a,
+html[data-theme="dark"] .Preguntas a h1 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] #Titulo,
+html[data-theme="dark"] .MainPreguntas #Titulo {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .InsPreguntas {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .InsPreguntas label {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .InsPreguntas input[type="text"],
+html[data-theme="dark"] .InsPreguntas textarea {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .InsPreguntas input[type="text"]:focus,
+html[data-theme="dark"] .InsPreguntas textarea:focus {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+html[data-theme="dark"] .InsPreguntas input[type="submit"] {
+    background-color: var(--accent-solid);
+    color: #ffffff;
+    border-color: var(--accent);
+}
+
+html[data-theme="dark"] .InsPreguntas input[type="submit"]:hover {
+    background-color: var(--accent);
+}
+
+/* Bloque del asistente IA */
+html[data-theme="dark"] .asistente-ia {
+    background-color: #4a3a86;
+    border-color: #7c5cff;
+}
+
+html[data-theme="dark"] .ia-privacidad-aviso {
+    background-color: #2a1b6b;
+    border-color: #7c5cff;
+    color: var(--text);
+}
+
+html[data-theme="dark"] .asistente-ia-input {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .asistente-ia-input:focus {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+html[data-theme="dark"] .asistente-ia-input::placeholder {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .asistente-ia-boton,
+html[data-theme="dark"] .crear-pregunta-ia-boton {
+    background-color: var(--accent-solid);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .asistente-ia-boton:hover,
+html[data-theme="dark"] .crear-pregunta-ia-boton:hover {
+    background-color: var(--accent);
+}
+
+/* Resultados y recomendaciones de la IA */
+html[data-theme="dark"] .resultados-ia {
+    background-color: var(--bg-soft);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .resultados-ia-titulo,
+html[data-theme="dark"] .respuesta-ia-titulo,
+html[data-theme="dark"] .recomendaciones-ia-titulo {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .respuesta-ia,
+html[data-theme="dark"] .recomendaciones-ia {
+    background-color: var(--surface);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .respuesta-ia-titulo i {
+    color: var(--accent);
+}
+
+html[data-theme="dark"] .respuesta-ia-texto {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .recomendacion {
+    background-color: var(--surface-2);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .recomendacion-cabecera strong {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .recomendacion-respuesta,
+html[data-theme="dark"] .sin-recomendaciones {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .similitud {
+    background-color: var(--accent-deep);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .recomendacion-categoria span {
+    background-color: var(--surface-3);
+    color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   8. Chat de respuestas (online/static/respuestas.css)
+   Superficies planas: fondo sólido + borde de 1px. Sin relleno decorativo ni
+   sombras de elevación.
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .MainRespuestas {
+    background-color: #14141f;
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .dRespuestas {
+    background-color: #3b2596;
+    border: 1px solid #6b51d8;
+    color: #f4f2ff;
+}
+
+html[data-theme="dark"] .dRespuestas p {
+    color: #f4f2ff;
+}
+
+html[data-theme="dark"] .dRespuestas h4 {
+    color: #d5cfff;
+}
+
+html[data-theme="dark"] .dRespuestasOtro {
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .dRespuestasOtro h1 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .dRespuestasOtro p {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .dRespuestasOtro h4 {
+    color: var(--text-muted);
+}
+
+/* Barra de escritura del chat */
+html[data-theme="dark"] .TextArea {
+    background-color: var(--surface);
+    border-top: 1.5px solid var(--border);
+}
+
+html[data-theme="dark"] .MainRespuestas textarea {
+    background-color: var(--surface-2);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .MainRespuestas textarea::placeholder {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] #btnSend {
+    background-color: transparent;
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] #btnSend:hover {
+    color: #ffffff;
+}
+
+/* Panel lateral de información */
+html[data-theme="dark"] .divPregunta,
+html[data-theme="dark"] .CambiarFondo {
+    background-color: var(--surface);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] #Titulopreg,
+html[data-theme="dark"] .divPregunta h2 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .divPregunta a {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .divPregunta hr {
+    border: none;
+    border-top: 1px solid var(--border);
+}
+
+/* ---------------------------------------------------------------------------
+   9. Login y registro (login.css / register.css)
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .mainLogin h2,
+html[data-theme="dark"] .MainRegister h2 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .mainLogin p,
+html[data-theme="dark"] .MainRegister p {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .mainLogin p a,
+html[data-theme="dark"] .MainRegister p a {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="password"],
+html[data-theme="dark"] input[type="email"],
+html[data-theme="dark"] input[type="number"] {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+html[data-theme="dark"] input[type="text"]::placeholder,
+html[data-theme="dark"] input[type="password"]::placeholder,
+html[data-theme="dark"] input[type="email"]::placeholder {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] input[type="text"]:focus,
+html[data-theme="dark"] input[type="password"]:focus,
+html[data-theme="dark"] input[type="email"]:focus {
+    border-color: var(--accent);
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+}
+
+html[data-theme="dark"] input[type="submit"] {
+    background-color: var(--accent-solid);
+    border: 1px solid var(--accent);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] input[type="submit"]:hover {
+    background-color: var(--accent);
+    border-color: var(--accent-soft);
+}
+
+html[data-theme="dark"] input[type="submit"]:focus-visible {
+    outline: 2px solid var(--accent-soft);
+    outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   10. Panel de administración (administracion/static/index.css)
+   Tablas, tarjetas de estadísticas, alertas, filtros, badges y acciones.
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] table {
+    background: var(--surface);
+    color: var(--text);
+}
+
+html[data-theme="dark"] table thead tr {
+    background: #33207f;
+    color: #f1eeff;
+}
+
+html[data-theme="dark"] table tbody tr {
+    border-bottom-color: var(--border);
+}
+
+html[data-theme="dark"] .admin-table tbody tr:hover {
+    background-color: var(--surface-2);
+}
+
+html[data-theme="dark"] .admin-subtitle,
+html[data-theme="dark"] .admin-panel-subtitle,
+html[data-theme="dark"] .admin-stat-note,
+html[data-theme="dark"] .admin-empty,
+html[data-theme="dark"] .admin-trend-user {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-stat {
+    background-color: var(--surface);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .admin-stat:nth-child(2) {
+    border-left-color: #ff6b6b;
+}
+
+html[data-theme="dark"] .admin-stat:nth-child(3) {
+    border-left-color: #25c2b5;
+}
+
+html[data-theme="dark"] .admin-stat:nth-child(4) {
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .admin-stat-label {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-stat-value {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .admin-alert {
+    background-color: var(--surface);
+    border-left-color: var(--accent);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .admin-alert-success {
+    background-color: #1b3a26;
+    border-left-color: #51cf66;
+    color: #b2f2bb;
+}
+
+html[data-theme="dark"] .admin-alert-error {
+    background-color: #40202a;
+    border-left-color: #ff6b6b;
+    color: #ffc9c9;
+}
+
+html[data-theme="dark"] .admin-alert-warning {
+    background-color: #40301b;
+    border-left-color: #ffa94d;
+    color: #ffd8a8;
+}
+
+html[data-theme="dark"] .admin-alert-info {
+    background-color: #2b2547;
+    border-left-color: var(--accent);
+    color: #d8d0ff;
+}
+
+html[data-theme="dark"] .admin-btn {
+    background-color: var(--accent-solid);
+    border-color: var(--accent);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .admin-btn:hover {
+    background-color: var(--accent);
+    border-color: var(--accent-soft);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .admin-btn-outline {
+    background-color: transparent;
+    border-color: rgba(185, 168, 255, 0.45);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-btn-outline:hover {
+    background-color: var(--accent-tint);
+    border-color: var(--accent-soft);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-panel {
+    background-color: var(--surface);
+}
+
+html[data-theme="dark"] .admin-panel-head h2 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-search {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .admin-search i {
+    color: var(--accent);
+}
+
+html[data-theme="dark"] .admin-search input {
+    background-color: transparent;
+    color: var(--text);
+}
+
+html[data-theme="dark"] .admin-search input::placeholder {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-filters label {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-id,
+html[data-theme="dark"] .admin-question-preview {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-question-title {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .admin-badge-ok {
+    background-color: #173a31;
+    color: #63e6be;
+}
+
+html[data-theme="dark"] .admin-badge-pending {
+    background-color: #40301b;
+    color: #ffc078;
+}
+
+html[data-theme="dark"] .admin-icon-btn {
+    background-color: transparent;
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-icon-btn:hover {
+    background-color: var(--accent-tint);
+}
+
+html[data-theme="dark"] .admin-icon-danger {
+    color: #ff8787;
+}
+
+html[data-theme="dark"] .admin-icon-danger:hover {
+    background-color: #3a1f27;
+}
+
+html[data-theme="dark"] .admin-empty i {
+    color: #55557a;
+}
+
+html[data-theme="dark"] .admin-trend {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .admin-trend-title {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .admin-tag {
+    background-color: var(--accent-deep);
+    color: #ffffff;
+}
+
+/* ---------------------------------------------------------------------------
+   11. Analytics IA (administracion/static/analytics.css)
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .metrica-card {
+    background-color: var(--surface);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .metrica-card h3 {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .metrica-card .numero {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .categorias-section,
+html[data-theme="dark"] .usuarios-section {
+    background-color: var(--surface);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .categorias-section h3,
+html[data-theme="dark"] .usuarios-section h3 {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .categoria-card {
+    background-color: var(--surface-2);
+    border-left-color: var(--accent);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .categoria-nombre {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .categoria-cantidad {
+    color: var(--accent-soft);
+    font-weight: 700;
+}
+
+html[data-theme="dark"] .usuario-card {
+    border-bottom-color: var(--border);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .preguntas-count {
+    background-color: var(--accent-deep);
+    color: #ffffff;
+}
+
+/* ---------------------------------------------------------------------------
+   12. Gestión de usuarios (administracion/static/gestion.css)
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .users-message-error {
+    background-color: #40202a;
+    border-color: rgba(255, 107, 107, 0.4);
+    color: #ffc9c9;
+}
+
+html[data-theme="dark"] .users-message-success {
+    background-color: #1b3a26;
+    border-color: rgba(81, 207, 102, 0.4);
+    color: #b2f2bb;
+}
+
+html[data-theme="dark"] .users-self-note {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] #btnModif,
+html[data-theme="dark"] #ModifTable th a {
+    color: var(--accent-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   13. Modificar pregunta (administracion/static/modificar.css)
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .MainPreguntar {
+    background-color: var(--surface);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] #TituloMod {
+    color: var(--accent-soft);
+}
+
+/* Los <select> de este formulario ya quedan cubiertos por la regla
+   general de "select" de la sección 5. */
+
+/* ============================================================================
+   14. Componentes nuevos de las plantillas actualizadas
+   ----------------------------------------------------------------------------
+   Cubre las clases introducidas al refrescar las plantillas del panel, analytics,
+   gestión de usuarios, inicio del cliente y chat de respuestas. Los bloques 10 a
+   13 conservan los overrides antiguos; aquí solo se agregan los que faltaban.
+   Ninguna declaración fuerza la prioridad con la marca de importancia.
+   ========================================================================== */
+
+/* 14.1 Variables de los contenedores (evita texto oscuro sobre superficie oscura) */
+html[data-theme="dark"] .admin-wrap {
+    --admin-violeta-oscuro: var(--accent-soft);
+    --admin-tinta: var(--text);
+    --admin-texto-suave: var(--text-muted);
+    --admin-borde: var(--border);
+    --admin-lavanda: var(--surface-2);
+}
+
+html[data-theme="dark"] .analytics-wrap {
+    --an-violeta-oscuro: var(--accent-soft);
+    --an-tinta: var(--text);
+    --an-texto-suave: var(--text-muted);
+    --an-borde: var(--border);
+    --an-lavanda: var(--surface-2);
+}
+
+html[data-theme="dark"] .users-wrap {
+    --users-violeta-oscuro: var(--accent-soft);
+    --users-tinta: var(--text);
+    --users-texto-suave: var(--text-muted);
+    --users-borde: var(--border);
+    --users-lavanda: var(--surface-2);
+}
+
+/* 14.2 Panel de administración: filtros, chips, badges y paginación --------- */
+
+html[data-theme="dark"] .admin-field input[type="search"],
+html[data-theme="dark"] .admin-field select {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .admin-field input[type="search"]::placeholder {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-field input[type="search"]:focus,
+html[data-theme="dark"] .admin-field select:focus {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+html[data-theme="dark"] .admin-chips {
+    border-top-color: var(--border);
+}
+
+html[data-theme="dark"] .admin-chip {
+    border-color: rgba(185, 168, 255, 0.3);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-chip:hover {
+    background-color: var(--accent-tint);
+    border-color: rgba(185, 168, 255, 0.55);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-chip-idle {
+    background-color: var(--surface-3);
+    border-color: var(--border);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-categoria {
+    background-color: var(--surface-3);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-num-respuestas {
+    background-color: var(--surface-3);
+    color: var(--accent-soft);
+}
+
+/* Badges de estado: relleno tintado sobre superficie oscura */
+html[data-theme="dark"] .admin-badge-pendiente {
+    background-color: #40301b;
+    color: #ffc078;
+}
+
+html[data-theme="dark"] .admin-badge-en_proceso {
+    background-color: #1d3247;
+    color: #8ecdff;
+}
+
+html[data-theme="dark"] .admin-badge-resuelto {
+    background-color: #173a31;
+    color: #63e6be;
+}
+
+html[data-theme="dark"] .admin-badge-cerrado {
+    background-color: #2a2e36;
+    color: #c9d1d9;
+}
+
+/* Badges de prioridad: contorno con el texto siempre visible */
+html[data-theme="dark"] .admin-badge-prioridad-baja {
+    color: #bcc5d1;
+}
+
+html[data-theme="dark"] .admin-badge-prioridad-media {
+    color: #ffc078;
+}
+
+html[data-theme="dark"] .admin-badge-prioridad-alta {
+    color: #ffa94d;
+}
+
+html[data-theme="dark"] .admin-badge.admin-badge-prioridad-urgente {
+    background-color: #40202a;
+    border-color: #ff6b6b;
+    color: #ffc9c9;
+}
+
+html[data-theme="dark"] .admin-vacio {
+    background-color: var(--surface-2);
+    border-color: rgba(185, 168, 255, 0.35);
+}
+
+html[data-theme="dark"] .admin-vacio i {
+    color: #8b84b8;
+}
+
+html[data-theme="dark"] .admin-page-btn {
+    background-color: var(--surface-2);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-page-btn:hover {
+    background-color: var(--accent-tint);
+    border-color: rgba(185, 168, 255, 0.5);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-page-btn-disabled,
+html[data-theme="dark"] .admin-page-btn-disabled:hover {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    color: #6f6b8a;
+}
+
+html[data-theme="dark"] .admin-page-num:hover {
+    background-color: var(--accent-tint);
+    border-color: rgba(185, 168, 255, 0.5);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-page-num-actual {
+    background-color: var(--accent-solid);
+    border-color: var(--accent-solid);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .admin-page-gap {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .admin-icon-btn:hover {
+    background-color: var(--accent-tint);
+}
+
+html[data-theme="dark"] .admin-icon-danger:hover {
+    background-color: #3a1f27;
+}
+
+/* 14.3 Analytics IA: período, KPIs, barras y estados ----------------------- */
+
+html[data-theme="dark"] .analytics-kicker {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .periodo-opcion:hover {
+    background-color: #2b2547;
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .periodo-opcion.is-activa {
+    background-color: var(--accent-solid);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .analytics-error {
+    background-color: #36222a;
+    border-color: rgba(255, 107, 107, 0.35);
+    border-left-color: #ff6b6b;
+    color: #ffc9c9;
+}
+
+html[data-theme="dark"] .analytics-error i {
+    color: #ff8787;
+}
+
+html[data-theme="dark"] .analytics-error p {
+    color: #ffb4b4;
+}
+
+html[data-theme="dark"] .metrica-card-alerta .numero {
+    color: #ff8787;
+}
+
+html[data-theme="dark"] .metrica-nota {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .metrica-barra,
+html[data-theme="dark"] .categoria-barra {
+    background-color: var(--surface-3);
+}
+
+html[data-theme="dark"] .panel-tag {
+    border-color: rgba(185, 168, 255, 0.28);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .categoria-card {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .categoria-datos {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .categoria-porcentaje {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .usuario-card:hover {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .usuario-puesto {
+    background-color: var(--surface-3);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .analytics-vacio {
+    background-color: var(--surface-2);
+    border-color: rgba(185, 168, 255, 0.35);
+}
+
+html[data-theme="dark"] .analytics-vacio i {
+    color: #8b84b8;
+}
+
+/* 14.4 Gestión de usuarios: contadores, filtros, tabla y acciones ---------- */
+
+html[data-theme="dark"] .users-contador {
+    background-color: var(--surface);
+}
+
+html[data-theme="dark"] .users-panel {
+    background-color: var(--surface);
+}
+
+html[data-theme="dark"] .users-field input[type="search"],
+html[data-theme="dark"] .users-field select,
+html[data-theme="dark"] .users-table select {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .users-field input[type="search"]::placeholder {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .users-field input[type="search"]:focus,
+html[data-theme="dark"] .users-field select:focus {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+html[data-theme="dark"] .users-btn-outline {
+    background-color: transparent;
+    border-color: rgba(185, 168, 255, 0.45);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .users-btn-outline:hover {
+    background-color: var(--accent-tint);
+    border-color: rgba(185, 168, 255, 0.65);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .users-table tbody tr:hover {
+    background-color: var(--surface-2);
+}
+
+html[data-theme="dark"] .users-pill-activo {
+    background-color: #173a31;
+    color: #63e6be;
+}
+
+html[data-theme="dark"] .users-pill-inactivo {
+    background-color: #3a1f27;
+    color: #ffc9c9;
+}
+
+html[data-theme="dark"] .users-btn-accion {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .users-btn-accion:hover {
+    background-color: var(--accent-tint);
+    border-color: rgba(185, 168, 255, 0.35);
+}
+
+html[data-theme="dark"] .users-btn-borrar {
+    color: #ff8787;
+}
+
+html[data-theme="dark"] .users-btn-borrar:hover {
+    background-color: #3a1f27;
+    border-color: rgba(255, 107, 107, 0.35);
+}
+
+html[data-theme="dark"] .users-acciones-vacio {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .users-vacio {
+    background-color: var(--surface-2);
+    border-color: rgba(185, 168, 255, 0.35);
+}
+
+html[data-theme="dark"] .users-vacio i {
+    color: #8b84b8;
+}
+
+/* 14.5 Inicio del cliente: historial, vacío y contador --------------------- */
+
+html[data-theme="dark"] .Preguntas-titulo {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .Preguntas-fecha {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .Preguntas-categoria {
+    background-color: var(--surface-3);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .Preguntas-vacio {
+    background-color: var(--surface-2);
+    border-color: rgba(185, 168, 255, 0.35);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .Preguntas-vacio i {
+    color: #8b84b8;
+}
+
+html[data-theme="dark"] .MainPreguntas-sub {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .InsPreguntas-cabecera h2 {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .InsPreguntas-cabecera p {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .contador-caracteres {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .contador-caracteres-limite {
+    color: #ff8787;
+}
+
+/* 14.6 Chat de respuestas: cabecera, ficha y estado vacío ------------------ */
+
+html[data-theme="dark"] .chat-cabecera {
+    background-color: var(--surface);
+    border-color: var(--border);
+    border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .chat-cabecera-etiqueta {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .chat-cabecera-titulo {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .chat-cabecera-datos {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .chat-cabecera-datos i {
+    color: var(--accent);
+}
+
+html[data-theme="dark"] .chat-volver {
+    background-color: var(--accent-tint);
+    border-color: rgba(185, 168, 255, 0.4);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .chat-volver:hover {
+    background-color: #3a3168;
+    border-color: rgba(185, 168, 255, 0.65);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .chat-info-label {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .chat-info-texto {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .chat-info-fila {
+    border-bottom-color: var(--border);
+}
+
+html[data-theme="dark"] .chat-info-fila dt {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .chat-info-fila dd {
+    color: var(--text);
+}
+
+html[data-theme="dark"] .chat-sin-mensajes {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .chat-sin-mensajes i {
+    color: #8b84b8;
+}
+
+/* Carrusel de gatos: marco, pista y controles en oscuro.
+   El recuadro lleva fondo sólido y borde de 1px; la imagen no necesita filtro. */
+html[data-theme="dark"] .divFondo {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .gatos-slides {
+    background-color: var(--surface-3);
+}
+
+html[data-theme="dark"] .gatos-flecha {
+    background-color: var(--surface-3);
+    border-color: var(--border);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .gatos-flecha:hover:not(:disabled) {
+    background-color: var(--accent-tint);
+    border-color: var(--accent);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .gatos-flecha:disabled {
+    background-color: var(--surface-2);
+    border-color: var(--border-soft);
+    color: #7b7793;
+}
+
+html[data-theme="dark"] .gatos-flecha:focus-visible {
+    outline-color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .gatos-punto::before {
+    background-color: #9a95b5;
+}
+
+html[data-theme="dark"] .gatos-punto:hover::before,
+html[data-theme="dark"] .gatos-punto[aria-current="true"]::before {
+    background-color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .gatos-punto:focus-visible::before {
+    outline-color: var(--accent-soft);
+}
+
+html[data-theme="dark"] #btnSend:hover {
+    background-color: var(--surface-3);
+    color: #ffffff;
+}
+
+/* 14.7 Foco visible sobre fondo oscuro ------------------------------------ */
+
+html[data-theme="dark"] .admin-btn:focus-visible,
+html[data-theme="dark"] .admin-page-btn:focus-visible,
+html[data-theme="dark"] .admin-page-num:focus-visible,
+html[data-theme="dark"] .admin-chip:focus-visible,
+html[data-theme="dark"] .admin-icon-btn:focus-visible,
+html[data-theme="dark"] .users-btn:focus-visible,
+html[data-theme="dark"] .users-btn-accion:focus-visible,
+html[data-theme="dark"] .periodo-opcion:focus-visible,
+html[data-theme="dark"] .analytics-btn:focus-visible,
+html[data-theme="dark"] .chat-volver:focus-visible,
+html[data-theme="dark"] .chat-cabecera a:focus-visible {
+    outline-color: var(--accent-soft);
+}

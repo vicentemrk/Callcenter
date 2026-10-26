@@ -33,13 +33,23 @@ input[type=submit] {
     cursor: pointer;
     width: 200px;
     height: 40px;
-    box-shadow: 0px 0px 8px 0px rgba(52, 32, 150, 0.7);
     border-radius: 2px;
     font-weight: bold;
     background-color: #673de6;
-    border: none;
+    border: 1px solid #4E31E1;
     color: white;
     margin-top: 25px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+input[type=submit]:hover {
+    background-color: #4E31E1;
+    border-color: #3b22b8;
+}
+
+input[type=submit]:focus-visible {
+    outline: 2px solid #4E31E1;
+    outline-offset: 3px;
 }
 
 input[type=text] {
@@ -55,15 +65,15 @@ input[type=text] {
 
 
 input[type=text]:focus {
-    outline: none;
-    box-shadow: 0px 0px 5px 2px rgba(78, 49, 225, 0.7);
-    border: 2px solid rgba(78, 49, 225, 0.7);
+    outline: 3px solid #4E31E1;
+    outline-offset: 2px;
+    border-color: #4E31E1;
 }
 
 input[type=password]:focus {
-    outline: none;
-    box-shadow: 0px 0px 5px 2px rgba(78, 49, 225, 0.7);
-    border: 2px solid rgba(78, 49, 225, 0.7);
+    outline: 3px solid #4E31E1;
+    outline-offset: 2px;
+    border-color: #4E31E1;
 }
 
 

@@ -22,17 +22,18 @@ main {
     width: 100%;
 }
 
+/* Barra plana: un solo violeta y borde inferior de 1px. */
 .MainNav {
     height: 60px;
     width: 100%;
-    background: linear-gradient(135deg, #4E31E1 0%, #673de6 100%);
+    background-color: #4E31E1;
+    border-bottom: 1px solid #3b22b8;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
     font-family: 'Poppins', sans-serif;
     padding: 0 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -74,7 +75,7 @@ main {
 }
 
 #NavbarIzq ul li a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #5c41e8;
     color: #f8f9fa;
 }
 
@@ -103,7 +104,7 @@ main {
 }
 
 #NavbarDer ul li a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #5c41e8;
     color: #f8f9fa;
 }
 
@@ -120,11 +121,13 @@ main {
 }
 
 .rol-admin {
-    background: #ff6b6b;
+    background-color: #a61e2b;
+    color: #ffffff;
 }
 
 .rol-tecnico {
-    background: #4ecdc4;
+    background-color: #0f766e;
+    color: #e6fffb;
 }
 
 .logout-form {
@@ -149,8 +152,8 @@ main {
 }
 
 .logout-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #ff6b6b;
+    background-color: #5c41e8;
+    color: #ffffff;
 }
 
 #NavbarDer ul li {
@@ -223,11 +226,6 @@ main {
     background-color: rgb(52, 32, 150);
     display: flex;
     align-items: center;
-    --mask:
-        radial-gradient(51.61px at 50% calc(100% - 72.00px), #000 99%, #0000 101%) calc(50% - 60px) 0/120px 100%,
-        radial-gradient(51.61px at 50% calc(100% + 42.00px), #0000 99%, #000 101%) 50% calc(100% - 30px)/120px 100% repeat-x;
-    -webkit-mask: var(--mask);
-    mask: var(--mask);
 }
 
 .contLeft {
@@ -273,20 +271,37 @@ main {
     font-family: "DM Sans", sans-serif;
     cursor: pointer;
     background-color: #673de6;
-    border: none;
-    box-shadow: 0px 0px 16px 0px rgba(52, 32, 150, 0.7);
+    border: 1px solid #4E31E1;
     border-radius: 2px;
     font-weight: bold;
     color: white;
     width: 200px;
     height: 40px;
-    transition: all 0.3s ease-in-out;
+    transition: background-color 0.2s ease-in-out;
     font-size: 1em;
 }
 
 #btnIngresar:hover {
-    box-shadow: 0px 0px 16px 0px rgba(137, 117, 235, 0.7);
-    transform: translateY(-2px);
+    background-color: #4E31E1;
+    border-color: #3b22b8;
+}
+
+/* El ingreso es un enlace: conserva el aspecto del botón anterior */
+a#btnIngresar {
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    line-height: 40px;
+}
+
+a#btnIngresar:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+/* Sobre el bloque claro final el foco blanco no se vería */
+.finalBody a#btnIngresar:focus-visible {
+    outline-color: #4E31E1;
 }
 
 .mainCard {
@@ -360,11 +375,10 @@ main {
     width: min(92%, 1320px);
     padding: 16px clamp(22px, 4vw, 40px);
     color: #f4f7fb;
-    background: linear-gradient(120deg, #14213d 0%, #1c3154 100%);
+    background-color: #14213d;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-top: 4px solid #25c2b5;
     border-radius: 14px;
-    box-shadow: 0 12px 32px rgba(13, 24, 45, 0.32);
 }
 
 .footer-content {
