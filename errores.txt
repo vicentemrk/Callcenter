@@ -298,43 +298,6 @@ Validacion realizada:
 
   otros usuarios y su fila aparece de solo lectura en el HTML.
 
-
-PRIORIDAD: Rediseño de roles, auditoría y gestión de Preguntas
-----------------------------------------------------------------
-
-- Se reemplazaron los campos booleanos independientes admin y tecnico por
-  un único campo rol. Sus valores posibles son cliente, tecnico y
-  administrador.
-
-- Un único campo evita combinaciones ambiguas, como un usuario que sea
-  administrador y tecnico al mismo tiempo, o que no tenga ningún rol válido.
-  Las reglas de acceso ahora comparan directamente request.user.rol.
-
-- La migración 0008 convierte los usuarios existentes antes de eliminar los
-  campos antiguos:
-  admin=True pasa a administrador, admin=False y tecnico=True pasa a
-  tecnico, y el resto pasa a cliente.
-
-- Se mantuvieron propiedades de compatibilidad para código antiguo, pero las
-  consultas ORM y los formularios nuevos usan rol. El panel de usuarios
-  muestra un selector único.
-
-- Se agregó Auditoria para registrar acciones administrativas importantes,
-  como modificar o eliminar usuarios y Preguntas, cambiar estados y cambiar
-  prioridades. Si una Pregunta se elimina, su registro de auditoría se
-  conserva sin la relación a esa Pregunta.
-
-- El panel permite filtrar Preguntas por estado, prioridad y categoría.
-  También permite cerrar y reabrir Preguntas mediante solicitudes POST
-  protegidas por login.
-
-Validación del rediseño:
-
-- python manage.py check: correcto.
-- python manage.py makemigrations --check: no hay cambios pendientes.
-- python manage.py migrate --check: correcto.
-- python manage.py test: 39 pruebas ejecutadas, todas correctas (OK).
-
 ====================================================================================================================================================================================
 
 12. Normalizacion de templates
@@ -650,6 +613,8 @@ Cambios realizados:
 - Se corrigieron textos como `Preguntas este Mes` y `Preguntas sin Respuesta`.
 - El titulo de modificar ahora indica claramente `Modificar pregunta`.
 
+====================================================================================================================================================================================
+
 25. Eliminacion de comentarios duplicados
 
 Se elimino la repeticion de `CallCenterGamer URL Configuration` en `urls.py`.
@@ -662,78 +627,35 @@ logica que podria no ser evidente para otra persona que mantenga el proyecto.
 
 26. Sistema de roles unico: cliente, tecnico y administrador
 
-admin = True o False
-tecnico = True o False
-Eso permitía combinaciones confusas, por ejemplo:
+Problema:
+Cada usuario tenia dos campos booleanos independientes, `admin` y `tecnico`, y
+eso permitia combinaciones ambiguas: administrador y tecnico a la vez, o
+ninguno de los dos.
 
-admin=True, tecnico=True
+Solucion:
+- Se reemplazaron por un unico campo `rol` con tres valores posibles: cliente,
+  tecnico y administrador. Las reglas de acceso comparan directamente
+  `request.user.rol`.
+- La migracion 0008 convierte los usuarios existentes antes de eliminar los
+  campos antiguos: `admin=True` pasa a administrador, `admin=False` con
+  `tecnico=True` pasa a tecnico y el resto pasa a cliente.
+- Se mantuvieron propiedades de compatibilidad para codigo antiguo, pero las
+  consultas ORM y los formularios nuevos usan `rol`. El panel de usuarios
+  muestra un selector unico en lugar de dos casillas.
+- Se agrego el modelo Auditoria para registrar las acciones administrativas
+  importantes (modificar o eliminar usuarios y Preguntas, cambiar estado y
+  cambiar prioridad). Si una Pregunta se elimina, su registro de auditoria se
+  conserva sin la relacion.
+- El panel permite filtrar Preguntas por estado, prioridad y categoria, y
+  cerrar o reabrir Preguntas mediante POST protegidos por login.
+- Un administrador no puede cambiar sus propios permisos, desactivar su cuenta
+  ni eliminarse a si mismo.
 
-Ahora se utiliza un único campo:
-
-rol = "cliente"
-rol = "tecnico"
-rol = "administrador"
-
-Así, cada usuario tiene un solo rol principal.
-
-Ejemplos:
-
-Cliente: puede crear Preguntas y consultar sus respuestas.
-Técnico: puede revisar y responder Preguntas.
-Administrador: puede gestionar usuarios y realizar acciones administrativas.
-
-Se migraron los usuarios antiguos
-La migración convierte los usuarios que ya existían:
-
-admin=True → rol="administrador"
-admin=False y tecnico=True → rol="tecnico"
-Ambos valores falsos → rol="cliente"
-Después de hacer la conversión, se eliminaron los campos antiguos admin y tecnico de la base de datos.
-
-Se actualizó la gestión de usuarios
-En el panel administrativo ya no se muestran dos casillas separadas para “Administrador” y “Técnico”.
-
-Ahora aparece un selector de rol:
-  Cliente
-  Técnico
-  Administrador
-
-También se mantiene la regla de que un administrador:
-
-No puede cambiar sus propios permisos.
-No puede desactivar su propia cuenta.
-No puede eliminarse a sí mismo.
-
-Se creó el modelo Auditoria para registrar acciones administrativas importantes.
-
-Por ejemplo:
-
-Modificar un usuario.
-Eliminar un usuario.
-Modificar una Pregunta.
-Eliminar una Pregunta.
-Cambiar el estado.
-Cambiar la prioridad.
-
-Se agregaron filtros para las Preguntas
-El panel administrativo permite filtrar Preguntas, por ejemplo:
-
-Estado: Pendiente
-Prioridad: Urgente
-Categoría: Hardware
-
-Estado.
-Prioridad.
-Categoría.
-Por ejemplo, se pueden visualizar solamente las Preguntas:
-
-
-6. Se agregó cierre y reapertura
-Ahora una Pregunta puede:
-
-Cerrarse cuando el problema está finalizado.
-Reabrirse si el usuario todavía necesita ayuda.
-Estas acciones están protegidas y solamente pueden realizarse mediante solicitudes autorizadas.
+Verificacion:
+`python manage.py check` sin problemas, `makemigrations --check` sin cambios
+pendientes, `migrate --check` correcto y `python manage.py test` con 39 pruebas
+en verde en ese momento, incluidas las nuevas de roles y de la fila de solo
+lectura del propio administrador.
 
 ====================================================================================================================================================================================
 
@@ -999,152 +921,3 @@ tests en verde (39 originales, 7 de IA y 11 nuevos de panel, busqueda,
 analytics y ultimo administrador).
 
 ====================================================================================================================================================================================
-
-34. Diseno plano: fuera degradados, brillos y sombras
-
-Problema:
-La interfaz dependia de efectos: botones con sombra, tarjetas con sombra de
-elevacion, barra de navegacion y pie de pagina con degradado, un bloque de IA
-con degradado violeta, un aviso de privacidad translucido y un fondo de chat con
-un patron de gradientes. En pantallas distintas los efectos se veian diferentes,
-el contraste dejaba de ser predecible y el conjunto parecia cargado. El usuario
-pidio explicitamente un diseno plano: fuera degradados y "sombras brillantes".
-
-Causa:
-Los efectos se fueron sumando archivo por archivo sin una regla comun, y el modo
-oscuro los replicaba con mas degradados y mas sombras en `tema.css`.
-
-Solucion:
-- Se recorrieron las diez hojas de estilo del proyecto y se reemplazo cada
-  efecto por color solido y borde de 1 px:
-  * botones y envios: fondo solido (o contorno) sin sombra ni brillo; el hover
-    cambia a una variante solida del mismo color;
-  * tarjetas, tablas, modales, burbujas del chat y estados vacios: fondo solido
-    mas borde de 1 px, sin sombra de elevacion;
-  * barra de navegacion y pie de pagina: color plano, separados del contenido
-    por un borde de 1 px en lugar de un degradado;
-  * el bloque del asistente y el aviso de privacidad: fondo solido tintado con
-    borde, sin transparencias;
-  * el recuadro del chat perdio su patron de gradientes: ahora es un color
-    solido y ese espacio aloja el carrusel de gatos.
-- Se mantuvo un unico uso de alfa: bordes y contornos. Ninguna superficie usa
-  `rgba()` como relleno.
-- Foco visible en los dos temas con `outline` de 2-3 px y `outline-offset`, para
-  que la navegacion con teclado siga siendo clara sin sombras.
-- Se corrigio el distintivo de rol administrador de la barra superior, que
-  estaba en 2.78 de contraste sobre fondo claro y 3.85 sobre oscuro: ahora usa
-  fondo `#a61e2b` con texto blanco, 7.39 de contraste, por encima de AA y AAA.
-- En el modo oscuro se aplanaron tambien los overrides: se redefinen variables y
-  colores literales, sin volver a introducir degradados ni sombras.
-
-Verificacion:
-`Select-String` de `linear-gradient|radial-gradient|box-shadow|text-shadow|
-backdrop-filter` sobre `online/static/*.css` y `administracion/static/*.css`
-devuelve 0 coincidencias, y la busqueda de `rgba(` usado como `background`
-devuelve 0. Ademas se midio el estilo computado en el navegador, elemento por
-elemento (incluidos `::before` y `::after`), en 9 vistas x 4 anchos x 2 temas:
-0 degradados, 0 sombras, 0 `text-shadow`, 0 `backdrop-filter` y 0 superficies
-translucidas. El contraste se volvio a medir en las 20 vistas y no quedan fallos
-AA.
-
-====================================================================================================================================================================================
-
-35. Carrusel de gatos y columnas del chat
-
-Problema:
-El recuadro junto a la conversacion (`.divFondo`) estaba vacio: era "el lugar
-donde deberia aparecer una imagen". Ademas el chat habia quedado centrado y la
-ficha de informacion debajo, a todo lo ancho, cuando el usuario preferia el
-esquema anterior: conversacion a la izquierda y datos a la derecha.
-
-Causa:
-El recuadro solo tenia un fondo decorativo que se retiro al aplanar el diseno, y
-el rediseno responsive habia apilado las dos columnas por comodidad, sin criterio
-para pantallas grandes.
-
-Solucion:
-- Carrusel con las seis imagenes propias del proyecto
-  (`online/static/img/Gato_1.webp` a `Gato_6.webp`, entre 11 y 72 KB), servidas
-  localmente: sin CDN, sin descargas en tiempo de ejecucion y sin librerias.
-- La pista usa `scroll-snap-type: x mandatory` con `overflow-x: auto`, cada
-  imagen en `object-fit: cover` con `aspect-ratio` fijo para no provocar saltos
-  de maqueta. Sin JavaScript la pista se puede deslizar igual.
-- Mejora progresiva: flechas de 44x44 px y seis puntos, con `aria-label`,
-  `aria-current` y `aria-controls`; los controles nacen ocultos y se muestran
-  solo si el script arranca. Nada de `tabindex` por imagen para no secuestrar el
-  tabulador.
-- Autoplay cada 2 segundos, en bucle, con `scrollTo` suave. Se detiene con el
-  puntero encima, con un control enfocado, con la pestana oculta, cuando el
-  carrusel sale de pantalla y durante 6 segundos despues de cualquier gesto
-  manual (rueda, arrastre, teclado, flechas o puntos); despues reanuda solo. Un
-  candado evita que un turno se dispare mientras la pista sigue moviendose.
-- Decision sobre accesibilidad: el equipo de la presentacion tiene las
-  animaciones de Windows desactivadas, asi que el navegador informa
-  `prefers-reduced-motion: reduce`. Como el requisito era que el carrusel se
-  mueva cada 2 segundos, con esa preferencia se mantiene el avance pero el
-  desplazamiento es instantaneo en lugar de animado; el resto de las pausas sigue
-  igual.
-- Columnas: `chat-layout` con `grid-template-columns: minmax(0, 1fr) 360px` y
-  24 px de separacion; a 1400 px la capa se ajusta, a 1100 px la columna derecha
-  pasa a 320 px, a 900 px se apila (chat primero, informacion despues) y a
-  600 px el margen baja a 20 px.
-
-Verificacion:
-Carrusel: 6 imagenes de 6 cargadas en los 8 casos medidos (4 anchos x 2 temas),
-0 respuestas 404, flechas deshabilitadas al inicio y punto activo correcto.
-Autoplay medido en el navegador: `scrollLeft` 0 -> 338 -> 676 px a los 2.2 y 4.6
-segundos (1366 px), se congela con el puntero encima y con el foco dentro, y
-vuelve a la primera imagen tras la sexta. A 768 y 500 px, con el carrusel fuera
-de pantalla, no avanza; al entrar en pantalla arranca (0 -> 706 -> 1412 px).
-Columnas medidas: 1366 px -> chat 896 + informacion 360; 1024 px -> 630 + 320;
-768 y 500 px -> apiladas, sin scroll horizontal. En las 72 combinaciones
-(9 vistas x 4 anchos x 2 temas) `scrollWidth` es igual a `clientWidth`.
-
-====================================================================================================================================================================================
-
-36. Verificacion final antes de la presentacion
-
-Problema:
-Antes de la entrega habia que descartar fallos en combinaciones que no se
-prueban a diario: los dos temas, cuatro anchos de pantalla y las tres cuentas
-de rol. `manage.py test` cubre vistas, permisos y formularios, pero no lo que
-el navegador termina mostrando: ancho real de la pagina, imagenes que no
-cargan, contraste o columnas mal apiladas. Un fallo asi en plena presentacion
-no lo detecta ninguna prueba unitaria.
-
-Causa:
-El proyecto no tenia una verificacion sobre la pagina renderizada. Los
-problemas de maqueta se descubrian a ojo, en un solo tamano de ventana y en un
-solo tema.
-
-Solucion:
-- Se armo un banco de verificacion fuera del repositorio
-  (`verificar_presentacion.py`): renderiza cada vista con el cliente de pruebas
-  de Django, la sirve por HTTP local y la abre en Chrome sin interfaz al ancho
-  pedido. Una sonda dentro de la pagina mide `scrollWidth` y `clientWidth`,
-  degradados, sombras, superficies translucidas e imagenes rotas en el estilo
-  computado de cada elemento (incluidos `::before` y `::after`), y devuelve el
-  resultado como datos.
-- Se recorren las 9 vistas del circuito (portada, acceso, registro, inicio de
-  cliente, panel, preguntas, usuarios, analitica y conversacion) por 4 anchos
-  (1366, 1024, 768 y 500 px) y 2 temas, con la cuenta que corresponde a cada
-  rol y siguiendo los redirects del servidor.
-- El banco se valido a si mismo con una hoja de prueba que tiene un degradado,
-  una sombra y una imagen rota conocidos: los detecta. Asi un resultado vacio
-  no se puede confundir con un fallo del medidor.
-- Se repitieron las capturas de la conversacion en claro, oscuro y en 768 px
-  para revisarlas a ojo.
-
-Verificacion:
-`python manage.py check` sin problemas. `python -B manage.py test`: 60 pruebas
-en verde. Barrido completo: 72 combinaciones (9 vistas x 4 anchos x 2 temas)
-con `scrollWidth` igual a `clientWidth`, 0 degradados, 0 sombras, 0
-superficies translucidas y 0 imagenes rotas. Contraste sin fallos AA en las 20
-vistas medidas. Carrusel: 6 de 6 imagenes cargadas y autoplay medido de 0 a
-338 y 676 px a los 2,6 y 5,4 segundos en 1366 px (a 1024, de 0 a 298 y 596 px),
-y de 0 a 706 y 1412 px en la vista apilada cuando el carrusel entra en
-pantalla. El banco informa el autoplay de 768 y 500 px como "no avanzo" porque
-a esa altura el carrusel queda por debajo del pliegue: es el comportamiento
-buscado y se comprobo con una ventana alta. La base de datos conserva sus 3
-usuarios, 4 preguntas y 3 respuestas, y el repositorio privado queda con el
-historial separado por fase.
