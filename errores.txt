@@ -1,4 +1,3 @@
-====================================================================================================================================================================================
 1. Ruta incorrecta de la base de datos
 En settings.py, la configuracion original era:
 'NAME': os.environ.get('DB_NAME', 'CallCenterGamer')
@@ -13,7 +12,9 @@ La base correcta era el archivo:
 C:\Users\sistema\Downloads\CallCenterGamer\db.sqlite3
 se corrigio usando:
 'NAME': os.environ.get('DB_NAME', str(BASE_DIR / 'db.sqlite3'))
+
 ====================================================================================================================================================================================
+
 2. Migración faltante
 Después de corregir la ruta, Django pudo acceder a SQLite y encontró otro problema:
 
@@ -25,7 +26,9 @@ Se copiaron archivos del proyecto sin copiar toda la carpeta migrations.
 Se generaron migraciones en otra versión o rama y quedó una dependencia inválida.
 Se renombró o regeneró una migración sin actualizar sus dependencias.
 Se corrigió haciendo que 0003 dependiera directamente de 0001_initial.py y generando la migración faltante de los cambios actuales de los modelos como 0004_alter_respuesta_respuesta_alter_usuario_apellido_and_more.py.
+
 ====================================================================================================================================================================================
+
 3. Panel administrativo y enlaces internos
 Se reemplazó indexAdmin.html (antes era una copia de la landing y tenía un endblock huérfano que rompía la vista) por un panel administrativo real con métricas, alertas de IA, tabla de preguntas, 
 buscador y acciones para ver, editar y eliminar. 
@@ -37,7 +40,9 @@ los enlaces usan el tag url y las redirecciones usan nombres de ruta.
 Se verificó que no existan usos de safe, mark_safe, format_html ni autoescape off, 
 y se agregó una prueba que confirma que los símbolos de etiquetas HTML y los enlaces escritos por usuarios se muestran escapados. 
 Las pruebas de redirección se actualizaron con reverse(), quedando la suite en verde.
+
 ====================================================================================================================================================================================
+
 4. Bucle de redirección en la página principal
 La plantilla index.html debía enviar a cada usuario al lugar correspondiente:
 los administradores y técnicos a /Administracion/ y los usuarios normales a
@@ -53,7 +58,9 @@ redirección:
 los administradores y técnicos van a la ruta administracion, y los usuarios
 normales van a la ruta inicio. También se utilizaron etiquetas url de Django
 en lugar de escribir las direcciones manualmente.
+
 ====================================================================================================================================================================================
+
 5. Asistente de inicio.html desconectado de la vista Inicio
 inicio.html tenía un formulario para que el usuario escribiera una consulta en
 el campo buscar_ayuda, pero la vista Inicio no leía ese dato ni lo procesaba.
@@ -68,7 +75,9 @@ Después, Inicio reúne ambos resultados en sugerencias_ia y los envía nuevamen
 a inicio.html. De esta forma, la consulta viaja desde el formulario hasta la
 vista, se procesa y vuelve a la página para mostrar la respuesta y las
 recomendaciones.
+
 ====================================================================================================================================================================================
+
 6. Errores internos de OpenAI visibles para el usuario
 Cuando OpenAI producía un error, ia_utils.py devolvía el detalle técnico
 completo usando el contenido de la excepción. Esto podía mostrar información
@@ -82,7 +91,9 @@ nuevamente más tarde."
 Así, el usuario recibe una explicación comprensible y no ve detalles internos
 del sistema. También se agregó una prueba que comprueba que el contenido técnico
 del error no se incluya en la respuesta.
+
 ====================================================================================================================================================================================
+
 7. Versiones de Django y dependencias sin fijar (Prioridad alta N6)
 El archivo requeriments.txt declaraba las dependencias con rangos abiertos:
 mysqlclient>=2.1.1
@@ -117,7 +128,9 @@ Validación realizada:
 - python manage.py makemigrations --check --dry-run: No changes detected.
 - python manage.py migrate --check: sin migraciones pendientes.
 - python manage.py test: 16 pruebas ejecutadas, todas correctas (OK).
+
 ====================================================================================================================================================================================
+
 8. Llamadas de IA en bucles durante el renderizado (Prioridad alta N7)
 Las vistas del panel administrativo ejecutaban una llamada a OpenAI por cada
 pregunta que mostraban:
@@ -157,8 +170,9 @@ Validación realizada:
   Se agregaron pruebas para verificar una sola llamada por lote en el panel y
   en analytics, cero llamadas en gestión de usuarios y modificación, y el
   respaldo "otros" cuando OpenAI falla.
+
 ====================================================================================================================================================================================
-====================================================================================================================================================================================================
+
 9. Categoría calculada en memoria y no persistida (Prioridad alta N8)
 El modelo Preguntas no guardaba la categoría. IndexAdmin y AnalyticsIA
 clasificaban las preguntas con una llamada a OpenAI en cada carga de página,
@@ -197,8 +211,9 @@ Validación realizada:
   Se agregaron pruebas para la categoría guardada al crear, la
   reclasificación al cambiar el texto, la conservación de la categoría si el
   texto no cambia y el conteo por categoría desde la BD sin llamadas a IA.
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+
+====================================================================================================================================================================================
+
 10. Tiempo promedio de respuesta simulado (Prioridad alta N9)
 La tarjeta de AnalyticsIA mostraba un valor fijo "2.5 días" en el campo
 tiempo_promedio_respuesta, no calculado a partir de los datos reales.
@@ -222,8 +237,8 @@ Validación realizada:
   Se agregaron pruebas para el uso de la primera respuesta de staff,
   el caso sin respuestas de staff, el descarte de respuestas anteriores
   a la pregunta y el formateo de días, horas y minutos.
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+
+====================================================================================================================================================================================
 
 11. Autodesactivacion y autodegradacion del administrador
 
@@ -320,9 +335,9 @@ Validación del rediseño:
 - python manage.py migrate --check: correcto.
 - python manage.py test: 39 pruebas ejecutadas, todas correctas (OK).
 
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
-11. Normalizacion de templates
+====================================================================================================================================================================================
+
+12. Normalizacion de templates
 
 Los templates hijos repetian estructuras HTML completas aunque heredaban de un template padre.
 Esto podia generar codigo duplicado y dificultar el mantenimiento de las paginas.
@@ -334,9 +349,10 @@ Ejemplo sencillo:
 - El padre header.html contiene la estructura general de la pagina.
 - Un hijo como login.html solo agrega su titulo y su formulario dentro de
   los bloques correspondientes.
-====================================================================================================================================================================================================
-=====================================================================================================================================================================================================
-12. Validacion del RUT en el servidor
+
+====================================================================================================================================================================================
+
+13. Validacion del RUT en el servidor
 
 El formulario aceptaba cualquier texto con apariencia de RUT y la validacion
 dependia principalmente del navegador. Se creo un validador reutilizable para
@@ -355,10 +371,10 @@ Ruts de pruebas:
 • 24156862-8
 • 15518258-k
 Pagina para crear: https://www.utilidadeschilenas.cl/generador-rut/
-====================================================================================================================================================================================================
-=====================================================================================================================================================================================================
 
-13. Limites de longitud del lado del servidor
+====================================================================================================================================================================================
+
+14. Limites de longitud del lado del servidor
 
 Algunos limites solo estaban definidos en el HTML, por lo que una solicitud
 manipulada podia enviar textos mas largos. Se establecio un maximo de 750
@@ -381,10 +397,10 @@ Pregunta:               |  750 caracteres
 Respuesta:              |  750 caracteres 
 Consulta IA:            |  250 caracteres
 Contraseña:             |  mínimo 8 y maximo 63 caracteres
-====================================================================================================================================================================================================
-=====================================================================================================================================================================================================
 
-14. Aviso de privacidad para el asistente de IA
+====================================================================================================================================================================================
+
+15. Aviso de privacidad para el asistente de IA
 
 Se agrego junto al asistente un aviso visible para informar que no deben
 ingresarse contraseñas, RUT, correos electronicos ni otros datos personales o
@@ -397,10 +413,10 @@ botones ni realizar acciones adicionales. No bloquea el uso del asistente.
 Ejemplo sencillo:
 - Consulta permitida: "Mi juego funciona lento".
 - Consulta que no debe escribirse: "Mi RUT es 12.345.678-5 y mi contrasena es...".
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
 
-15. Templates duplicados sin uso
+====================================================================================================================================================================================
+
+16. Templates duplicados sin uso
 
 Se revisaron las referencias de los templates antes de eliminar archivos.
 `online/templates/componentes/home.html` no era utilizado por ninguna vista,
@@ -413,10 +429,10 @@ la vista de Analytics IA continua apuntando a la plantilla activa.
 
 No se eliminaron templates que tuvieran referencias o fueran necesarios para
 el funcionamiento actual.
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
 
-16. Diseño responsivo
+====================================================================================================================================================================================
+
+17. Diseño responsivo
 
 Se ajustaron los estilos para que la aplicacion se adapte a computadores,
 tablets y celulares. La barra de navegacion, la pagina de inicio, el formulario
@@ -426,10 +442,10 @@ angostas, evitando desbordamientos horizontales.
 Ejemplo sencillo:
 - En computador, el formulario y el historial pueden verse lado a lado.
 - En celular, ambos bloques se muestran uno debajo del otro.
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
 
-17. Estilos inline en los templates
+====================================================================================================================================================================================
+
+18. Estilos inline en los templates
 
 Se trasladaron los estilos escritos directamente dentro de los templates a
 archivos CSS. Esto deja el HTML dedicado a la estructura y permite mantener
@@ -438,10 +454,10 @@ los estilos responsivos en un solo lugar, sin cambiar la funcionalidad.
 Ejemplo sencillo:
 - Antes: un boton tenia sus colores y margenes dentro de `style="..."`.
 - Ahora: el boton usa una clase y sus estilos viven en el CSS correspondiente.
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
 
-18. Estados y prioridades de los tickets
+====================================================================================================================================================================================
+
+19. Estados y prioridades de los tickets
 
 En el proyecto, cada pregunta funciona como un ticket de atencion. Se
 agregaron un estado y una prioridad para ordenar el trabajo de los tecnicos y
@@ -493,10 +509,9 @@ Implementacion realizada:
 - El panel muestra el estado y la prioridad de cada ticket.
 - La migracion fue creada y aplicada correctamente.
 
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+====================================================================================================================================================================================
 
-19. Logging del servidor
+20. Logging del servidor
 
 El logging es el sistema que crea, clasifica y dirige los logs. Un log es cada
 registro individual de lo que ocurre en el servidor. El logging reemplaza los
@@ -533,10 +548,9 @@ Como agregar un log en el futuro:
 3. Usar `logger.info(...)`, `logger.warning(...)` o `logger.exception(...)`
    segun el tipo de mensaje.
 
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+====================================================================================================================================================================================
 
-20. Limpieza de imports y variables sin uso
+21. Limpieza de imports y variables sin uso
 
 Se revisaron los archivos Python del proyecto para eliminar elementos que no
 participaban en la ejecucion. La limpieza se hizo comparando cada import con
@@ -572,10 +586,9 @@ Revision final:
   son necesarios para reconstruir la base de datos, ejecutar pruebas o iniciar
   el proyecto.
 
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+====================================================================================================================================================================================
 
-21. Optimizacion de consultas
+22. Optimizacion de consultas
 
 Se revisaron las consultas de las vistas y utilidades para entender que
 informacion obtiene cada una y evitar trabajo repetido.
@@ -608,10 +621,9 @@ Consultas principales y motivo:
 La optimizacion no elimina consultas necesarias; evita consultas repetidas y
 mantiene el mismo resultado visible para el usuario.
 
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+====================================================================================================================================================================================
 
-22. Normalizacion de nombres de variables
+23. Normalizacion de nombres de variables
 
 Se normalizaron variables locales siguiendo la convencion `snake_case`:
 - `User` paso a `usuario`.
@@ -625,10 +637,9 @@ No se cambiaron los nombres de modelos ni campos como `Preguntas`, `Pregunta`,
 migraciones y consultas de Django. Cambiarlos requeriria una migracion y
 ajustes en varias capas sin aportar una mejora proporcional.
 
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+====================================================================================================================================================================================
 
-23. Correccion de titulos y textos
+24. Correccion de titulos y textos
 
 Se unifico el lenguaje visible para que la aplicacion hable principalmente de
 `Preguntas`, que es el nombre funcional elegido para el sistema.
@@ -639,17 +650,17 @@ Cambios realizados:
 - Se corrigieron textos como `Preguntas este Mes` y `Preguntas sin Respuesta`.
 - El titulo de modificar ahora indica claramente `Modificar pregunta`.
 
-24. Eliminacion de comentarios duplicados
+25. Eliminacion de comentarios duplicados
 
 Se elimino la repeticion de `CallCenterGamer URL Configuration` en `urls.py`.
 El encabezado se conserva una sola vez porque identifica el archivo.
 
 No se eliminaron comentarios que explican decisiones tecnicas, validaciones o
 logica que podria no ser evidente para otra persona que mantenga el proyecto.
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
 
-Se cambió el sistema de roles
+====================================================================================================================================================================================
+
+26. Sistema de roles unico: cliente, tecnico y administrador
 
 admin = True o False
 tecnico = True o False
@@ -723,5 +734,417 @@ Ahora una Pregunta puede:
 Cerrarse cuando el problema está finalizado.
 Reabrirse si el usuario todavía necesita ayuda.
 Estas acciones están protegidas y solamente pueden realizarse mediante solicitudes autorizadas.
-====================================================================================================================================================================================================
-====================================================================================================================================================================================================
+
+====================================================================================================================================================================================
+
+27. Historial de Git reconstruido
+
+Problema:
+Git no se podia usar con normalidad en el proyecto. `git status` y `git log`
+respondian con errores de objetos corruptos, y el unico historial existente
+estaba firmado por otro autor (MatLumber, ano 2022), sin relacion con este
+trabajo. No habia forma de revisar que cambio ni de publicar el proyecto.
+
+Causa:
+La carpeta `.git` venia heredada de una copia o plantilla ajena. Ademas de
+estar danada, su historial no correspondia al codigo actual, por lo que
+recuperarla no aportaba nada: habria mezclado dos proyectos distintos.
+
+Solucion:
+- Se copio el proyecto completo a `C:\Users\mirk\Downloads\_backup_CallCenterGamer_20261026`
+  antes de tocar nada.
+- El `.git` antiguo se movio fuera del proyecto (quedo como
+  `_backup_CallCenterGamer_20261026_git_corrupto`), no se borro.
+- Se creo un repositorio nuevo con `git init` y la rama `main`.
+- Se agrego `.gitignore` para excluir secretos y archivos generados: `.env`,
+  `db.sqlite3`, `*.sqlite3`, `logs/*.log`, `__pycache__`, entornos virtuales,
+  `staticfiles/`, `media/` y archivos de editor o sistema operativo.
+- Se agrego `.env.example` con las variables necesarias pero sin valores
+  reales, para que otra persona pueda configurar el proyecto.
+- Se hizo el commit base `3860e14` ("Base inicial del proyecto
+  CallCenterGamer") con 67 archivos, antes de cambiar una sola linea de codigo.
+- Se creo el repositorio privado `https://github.com/vicentemrk/Callcenter.git`
+  y se subio la rama `main`.
+
+Verificacion:
+`git ls-remote origin` devolvio el mismo hash corto que el commit local
+(`3860e14`). `git log --oneline` muestra un historial propio y `git status`
+queda limpio despues del commit. El repositorio es privado y el informe del
+profesor no se versiona.
+
+====================================================================================================================================================================================
+
+28. Asistente de IA a costo 0
+
+Problema:
+El asistente dependia de un unico proveedor externo de pago. Si la clave no
+estaba configurada, si se agotaba la cuota o si la red fallaba, el usuario se
+quedaba sin ninguna respuesta.
+
+Causa:
+La vista llamaba directamente a la API. No existia una fachada que centralizara
+el cliente, el prompt y el manejo de errores.
+
+Solucion:
+Se creo una fachada en `online/ia_utils.py` con un solo proveedor remoto: Groq,
+compatible con la API de OpenAI (`IA_BASE_URL=https://api.groq.com/openai/v1`),
+modelo `openai/gpt-oss-20b`. El plan gratuito de Groq mantiene el costo en $0.
+- La configuracion vive en `.env` y se carga con `django-environ`: `IA_API_KEY`,
+  `IA_BASE_URL`, `IA_MODEL`, `IA_TIMEOUT` y `IA_MAX_TOKENS`, documentadas en
+  `.env.example`.
+- `AsistenteIA` centraliza la respuesta libre y la clasificacion; las vistas
+  solo la llaman y no conocen al proveedor.
+- Si no hay clave, el texto esta vacio o el proveedor falla, la fachada devuelve
+  `MENSAJE_NO_DISPONIBLE` ("El asistente virtual no esta disponible en este
+  momento. Crea una pregunta y un tecnico te respondera...") y la clasificacion
+  cae a "otros". Nunca se propaga una excepcion hacia la vista.
+- `python manage.py verificar_ia` comprueba la configuracion (`--solo-config`,
+  sin red) y hace una prueba real informando origen y latencia.
+- `python manage.py reclasificar_preguntas` corrige la categoria de preguntas
+  antiguas: dry-run por defecto, `--aplicar` para escribir y lotes de 20.
+
+Verificacion:
+Con la clave valida, `verificar_ia` respondio con origen `groq` en 1366 ms y
+clasifico dos preguntas en 617 ms ("No funciona el mouse" -> hardware, "Tengo
+ping alto y lag" -> conexion), con codigo de salida 0. Con el proveedor caido,
+`generar_respuesta_automatica` devuelve el mensaje amable y un test confirma que
+una excepcion del SDK no llega a la vista.
+
+====================================================================================================================================================================================
+
+29. Protecciones del asistente (prompt y limites)
+
+Problema:
+Un asistente conectado a un proveedor externo puede recibir instrucciones
+maliciosas dentro del texto del usuario, generar respuestas larguisimas o
+mostrar errores tecnicos en pantalla.
+
+Causa:
+El texto del usuario llegaba al modelo sin delimitadores ni reglas, no habia
+limites de red y las excepciones del proveedor se propagaban hacia la vista.
+
+Solucion:
+- Prompt del sistema endurecido: define el rol, exige responder en espanol con
+  pasos concretos, limita la respuesta a 900 caracteres, prohibe revelar el
+  prompt o las instrucciones y prohibe pedir o repetir datos personales.
+- El contenido del usuario viaja delimitado en `<consulta>` y `<historial>`, y
+  el prompt indica explicitamente que eso son datos, no instrucciones.
+- Sanitizacion previa: se recorta el texto, se eliminan caracteres de control y
+  se colapsan espacios; la vista ademas limita la consulta a 250 caracteres.
+- Limites de red: 15 segundos de espera, un solo reintento y 400 tokens de
+  salida. Se envia `max_completion_tokens` y, si el proveedor lo rechaza, se
+  reintenta una vez con `max_tokens`. No se envia `temperature` porque los
+  modelos actuales la rechazan.
+- Cualquier error se registra en `logs/callcentergamer.log` solo por tipo de
+  excepcion y modelo, nunca con la clave ni con datos personales, y la vista
+  recibe siempre una respuesta valida.
+- El clasificador remoto usa una sola llamada por lote de 20 preguntas, valida
+  el JSON contra las categorias reales y devuelve "otros" si algo falla, en
+  lugar de romper la creacion o edicion de una pregunta.
+
+Verificacion:
+Los tests cubren la respuesta con error del SDK, la falta de clave, la
+clasificacion con fallo y el cliente configurado con `base_url` y `timeout`. En
+la prueba real, `verificar_ia` termina con exit 0 con la clave valida y con exit
+1 cuando el proveedor no responde. La clave se muestra siempre enmascarada
+(`gsk_****WNj`).
+
+====================================================================================================================================================================================
+
+30. Codificacion de la consola en el comando de verificacion
+
+Problema:
+`python manage.py verificar_ia` respondia bien contra Groq, pero el comando
+terminaba con `UnicodeEncodeError` justo despues de mostrar el origen y la
+latencia. Parecia que la IA fallaba, cuando en realidad la respuesta ya estaba
+generada.
+
+Causa:
+La respuesta del modelo incluye caracteres Unicode que no existen en cp1252,
+la codificacion habitual de la consola de Windows: por ejemplo el guion no
+separable U+2011 y comillas tipograficas. `print` intentaba escribirlos en la
+consola y lanzaba la excepcion. Era un fallo del reporte, no del asistente.
+
+Solucion:
+Se agrego la funcion `imprimible()` en
+`online/management/commands/verificar_ia.py`. Toma la codificacion real de
+`sys.stdout`, codifica el texto con `errors='replace'` y lo decodifica de
+vuelta, de modo que la consola muestra un caracter equivalente en lugar de
+romperse. Se aplica a la consulta, la respuesta, los errores, las preguntas de
+clasificacion y los mensajes de error.
+
+Verificacion:
+El comando termina con codigo de salida 0 mostrando la respuesta completa con
+acentos y guiones. La aplicacion web no se ve afectada porque las plantillas se
+sirven en UTF-8; el problema solo existia en la consola de Windows.
+
+====================================================================================================================================================================================
+
+31. Modo oscuro automatico con selector manual
+
+Problema:
+La interfaz solo tenia un tema claro. En horario nocturno o con el sistema
+operativo en modo oscuro, la pantalla blanca resultaba incomoda y no habia
+forma de cambiarla.
+
+Causa:
+Los colores estaban fijos en cada hoja de estilos, sin variables ni atributo de
+tema, y no existia ningun control para elegir tema.
+
+Solucion:
+- `online/static/tema.css` (840 lineas) define variables y 171 reglas, todas
+  dentro de `html[data-theme="dark"]`. El tema claro conserva exactamente el
+  diseno original porque ninguna regla clara se modifico.
+- `online/static/tema.js` alterna el atributo `data-theme`, guarda la eleccion
+  en `localStorage` (clave `tema`) y actualiza el icono, `aria-pressed`,
+  `title` y `aria-label` del boton.
+- Si no hay eleccion guardada, se usa la preferencia del sistema con
+  `prefers-color-scheme` y se escuchan sus cambios en vivo.
+- Un script minimo en el `<head>`, antes de cualquier CSS, aplica el tema para
+  evitar el parpadeo inicial (FOUC).
+- El boton vive en la barra de navegacion y funciona tambien con
+  `localStorage` bloqueado, sin lanzar errores.
+- Se declara `color-scheme` en ambos temas para que selects, casillas y barras
+  de desplazamiento nativas usen la paleta correcta.
+
+Verificacion:
+Con Chrome headless y estilos computados: el tema claro mantiene `body`
+#f8f9fa, navbar violeta y tablas blancas, sin fugas del oscuro. El tema oscuro
+usa `body` #12121a, superficies #1c1c28, texto #e8e8f0 y acento #b9a8ff. En
+capturas oscuras los pixeles casi blancos son 0,1-0,2 %. El boton mide 36x36 px
+en escritorio y 34x34 en movil, y no aparece scroll horizontal en 1366, 768 ni
+500 px.
+
+====================================================================================================================================================================================
+
+32. Layout responsivo y recursos inexistentes
+
+Problema:
+En pantallas de notebook y moviles la aplicacion se desbordaba: el chat medía
+1330 px con una ventana de 752 px, el bloque del asistente se salia de su
+tarjeta, el historial de preguntas se cortaba y dos imagenes de fondo
+respondian 404.
+
+Causa:
+Las hojas de estilo usaban medidas fijas en pixeles (`width: 1280px`,
+`margin-left: 750px`, `height: 400px`, `width: 800px`, `float`), pensadas para
+una sola resolucion. Ademas, dos `url()` apuntaban a archivos que nunca
+estuvieron en `online/static/img/`.
+
+Solucion:
+- Contenedores fluidos: `width: min(1280px, calc(100% - 32px))` y
+  `margin: 20px auto`, sin `float` ni desplazamientos magicos.
+- Chat con flex: burbujas propias y ajenas alineadas con `align-self` y
+  `max-width: min(70%, 640px)`; zona de mensajes con scroll propio y altura
+  `clamp()`.
+- El formulario y el bloque del asistente crecen con el contenido
+  (`min-height` en lugar de `height`) y el texto largo rompe linea
+  (`overflow-wrap: anywhere`).
+- Grillas con `auto-fit` y media queries en 1400, 1000, 900 y 600 px.
+- Las dos imagenes inexistentes se reemplazaron por un patron de gradientes
+  semitransparente hecho solo con CSS; como no declara color de fondo, el tema
+  oscuro sigue mandando el suyo.
+
+Verificacion:
+`document.documentElement.scrollWidth` del chat paso de 1330 a 998, 742 y 490
+px en ventanas de 1024, 768 y 500 px. En el inicio, el contenido del asistente
+media 700 px dentro de una caja de 398 px y el historial se cortaba 51 px;
+ahora no queda ningun elemento fuera de su contenedor. En modificar pregunta,
+785 px pasaron a 737 y 659 a 485. La base quedo intacta: 3 usuarios, 4
+preguntas, 3 respuestas y 0 registros temporales.
+
+====================================================================================================================================================================================
+
+33. Panel de administracion en servicios, con paginacion y busqueda
+
+Problema:
+`administracion/views.py` tenia 401 lineas y mezclaba permisos, consultas,
+metricas, auditoria y render. El listado mostraba todas las preguntas de una
+vez, sin paginacion ni buscador, y el analisis solo miraba un periodo fijo.
+
+Causa:
+Vistas gordas: cada vista resolvia toda la logica. No se usaba `Paginator` y no
+habia filtros de texto.
+
+Solucion:
+Se separo la logica en un paquete `administracion/servicios/`:
+- `permisos.py`: decorador `rol_requerido`, que reproduce el comportamiento por
+  vista (destino y mensaje distintos segun el rol).
+- `panel.py`: contexto del panel con metricas, alertas, tendencias, filtros,
+  busqueda y paginacion.
+- `analytics.py`: `_formatear_duracion` y el contexto del periodo (7, 30 o 90
+  dias, con 30 por defecto si el valor no es valido).
+- `tickets.py`: cerrar, reabrir, borrar y modificar, con
+  `transaction.atomic`, `select_for_update` y auditoria.
+- `usuarios.py`: filtros, contadores y reglas de modificacion y eliminacion.
+
+`administracion/views.py` quedo en 109 lineas y cada vista solo orquesta
+permiso, servicio, mensaje y respuesta. Los cambios funcionales:
+- Paginacion de 20 preguntas con `Paginator.get_page`, que nunca lanza
+  `EmptyPage` (una pagina inexistente cae en la ultima).
+- Buscador de servidor `q` que filtra por titulo, contenido o nombre de usuario,
+  recortado a 100 caracteres.
+- Orden estable por fecha de creacion descendente y, en empate, por id.
+- Las metricas del panel se calculan sobre el total, no sobre el filtro, para
+  que los indicadores no cambien al buscar.
+- Analytics agrega `categorias_lista` con etiqueta legible y porcentaje, el
+  porcentaje de preguntas resueltas y el total de respuestas del periodo.
+- Gestion de usuarios agrega buscador por usuario o correo, filtro por rol y
+  estado, y contadores por rol e inactivos en una sola consulta.
+- Se mantuvieron los textos de auditoria y el comportamiento de cada accion.
+
+Verificacion:
+`python manage.py check` sin problemas y `python -B manage.py test` con 57
+tests en verde (39 originales, 7 de IA y 11 nuevos de panel, busqueda,
+analytics y ultimo administrador).
+
+====================================================================================================================================================================================
+
+34. Diseno plano: fuera degradados, brillos y sombras
+
+Problema:
+La interfaz dependia de efectos: botones con sombra, tarjetas con sombra de
+elevacion, barra de navegacion y pie de pagina con degradado, un bloque de IA
+con degradado violeta, un aviso de privacidad translucido y un fondo de chat con
+un patron de gradientes. En pantallas distintas los efectos se veian diferentes,
+el contraste dejaba de ser predecible y el conjunto parecia cargado. El usuario
+pidio explicitamente un diseno plano: fuera degradados y "sombras brillantes".
+
+Causa:
+Los efectos se fueron sumando archivo por archivo sin una regla comun, y el modo
+oscuro los replicaba con mas degradados y mas sombras en `tema.css`.
+
+Solucion:
+- Se recorrieron las diez hojas de estilo del proyecto y se reemplazo cada
+  efecto por color solido y borde de 1 px:
+  * botones y envios: fondo solido (o contorno) sin sombra ni brillo; el hover
+    cambia a una variante solida del mismo color;
+  * tarjetas, tablas, modales, burbujas del chat y estados vacios: fondo solido
+    mas borde de 1 px, sin sombra de elevacion;
+  * barra de navegacion y pie de pagina: color plano, separados del contenido
+    por un borde de 1 px en lugar de un degradado;
+  * el bloque del asistente y el aviso de privacidad: fondo solido tintado con
+    borde, sin transparencias;
+  * el recuadro del chat perdio su patron de gradientes: ahora es un color
+    solido y ese espacio aloja el carrusel de gatos.
+- Se mantuvo un unico uso de alfa: bordes y contornos. Ninguna superficie usa
+  `rgba()` como relleno.
+- Foco visible en los dos temas con `outline` de 2-3 px y `outline-offset`, para
+  que la navegacion con teclado siga siendo clara sin sombras.
+- Se corrigio el distintivo de rol administrador de la barra superior, que
+  estaba en 2.78 de contraste sobre fondo claro y 3.85 sobre oscuro: ahora usa
+  fondo `#a61e2b` con texto blanco, 7.39 de contraste, por encima de AA y AAA.
+- En el modo oscuro se aplanaron tambien los overrides: se redefinen variables y
+  colores literales, sin volver a introducir degradados ni sombras.
+
+Verificacion:
+`Select-String` de `linear-gradient|radial-gradient|box-shadow|text-shadow|
+backdrop-filter` sobre `online/static/*.css` y `administracion/static/*.css`
+devuelve 0 coincidencias, y la busqueda de `rgba(` usado como `background`
+devuelve 0. Ademas se midio el estilo computado en el navegador, elemento por
+elemento (incluidos `::before` y `::after`), en 9 vistas x 4 anchos x 2 temas:
+0 degradados, 0 sombras, 0 `text-shadow`, 0 `backdrop-filter` y 0 superficies
+translucidas. El contraste se volvio a medir en las 20 vistas y no quedan fallos
+AA.
+
+====================================================================================================================================================================================
+
+35. Carrusel de gatos y columnas del chat
+
+Problema:
+El recuadro junto a la conversacion (`.divFondo`) estaba vacio: era "el lugar
+donde deberia aparecer una imagen". Ademas el chat habia quedado centrado y la
+ficha de informacion debajo, a todo lo ancho, cuando el usuario preferia el
+esquema anterior: conversacion a la izquierda y datos a la derecha.
+
+Causa:
+El recuadro solo tenia un fondo decorativo que se retiro al aplanar el diseno, y
+el rediseno responsive habia apilado las dos columnas por comodidad, sin criterio
+para pantallas grandes.
+
+Solucion:
+- Carrusel con las seis imagenes propias del proyecto
+  (`online/static/img/Gato_1.webp` a `Gato_6.webp`, entre 11 y 72 KB), servidas
+  localmente: sin CDN, sin descargas en tiempo de ejecucion y sin librerias.
+- La pista usa `scroll-snap-type: x mandatory` con `overflow-x: auto`, cada
+  imagen en `object-fit: cover` con `aspect-ratio` fijo para no provocar saltos
+  de maqueta. Sin JavaScript la pista se puede deslizar igual.
+- Mejora progresiva: flechas de 44x44 px y seis puntos, con `aria-label`,
+  `aria-current` y `aria-controls`; los controles nacen ocultos y se muestran
+  solo si el script arranca. Nada de `tabindex` por imagen para no secuestrar el
+  tabulador.
+- Autoplay cada 2 segundos, en bucle, con `scrollTo` suave. Se detiene con el
+  puntero encima, con un control enfocado, con la pestana oculta, cuando el
+  carrusel sale de pantalla y durante 6 segundos despues de cualquier gesto
+  manual (rueda, arrastre, teclado, flechas o puntos); despues reanuda solo. Un
+  candado evita que un turno se dispare mientras la pista sigue moviendose.
+- Decision sobre accesibilidad: el equipo de la presentacion tiene las
+  animaciones de Windows desactivadas, asi que el navegador informa
+  `prefers-reduced-motion: reduce`. Como el requisito era que el carrusel se
+  mueva cada 2 segundos, con esa preferencia se mantiene el avance pero el
+  desplazamiento es instantaneo en lugar de animado; el resto de las pausas sigue
+  igual.
+- Columnas: `chat-layout` con `grid-template-columns: minmax(0, 1fr) 360px` y
+  24 px de separacion; a 1400 px la capa se ajusta, a 1100 px la columna derecha
+  pasa a 320 px, a 900 px se apila (chat primero, informacion despues) y a
+  600 px el margen baja a 20 px.
+
+Verificacion:
+Carrusel: 6 imagenes de 6 cargadas en los 8 casos medidos (4 anchos x 2 temas),
+0 respuestas 404, flechas deshabilitadas al inicio y punto activo correcto.
+Autoplay medido en el navegador: `scrollLeft` 0 -> 338 -> 676 px a los 2.2 y 4.6
+segundos (1366 px), se congela con el puntero encima y con el foco dentro, y
+vuelve a la primera imagen tras la sexta. A 768 y 500 px, con el carrusel fuera
+de pantalla, no avanza; al entrar en pantalla arranca (0 -> 706 -> 1412 px).
+Columnas medidas: 1366 px -> chat 896 + informacion 360; 1024 px -> 630 + 320;
+768 y 500 px -> apiladas, sin scroll horizontal. En las 72 combinaciones
+(9 vistas x 4 anchos x 2 temas) `scrollWidth` es igual a `clientWidth`.
+
+====================================================================================================================================================================================
+
+36. Verificacion final antes de la presentacion
+
+Problema:
+Antes de la entrega habia que descartar fallos en combinaciones que no se
+prueban a diario: los dos temas, cuatro anchos de pantalla y las tres cuentas
+de rol. `manage.py test` cubre vistas, permisos y formularios, pero no lo que
+el navegador termina mostrando: ancho real de la pagina, imagenes que no
+cargan, contraste o columnas mal apiladas. Un fallo asi en plena presentacion
+no lo detecta ninguna prueba unitaria.
+
+Causa:
+El proyecto no tenia una verificacion sobre la pagina renderizada. Los
+problemas de maqueta se descubrian a ojo, en un solo tamano de ventana y en un
+solo tema.
+
+Solucion:
+- Se armo un banco de verificacion fuera del repositorio
+  (`verificar_presentacion.py`): renderiza cada vista con el cliente de pruebas
+  de Django, la sirve por HTTP local y la abre en Chrome sin interfaz al ancho
+  pedido. Una sonda dentro de la pagina mide `scrollWidth` y `clientWidth`,
+  degradados, sombras, superficies translucidas e imagenes rotas en el estilo
+  computado de cada elemento (incluidos `::before` y `::after`), y devuelve el
+  resultado como datos.
+- Se recorren las 9 vistas del circuito (portada, acceso, registro, inicio de
+  cliente, panel, preguntas, usuarios, analitica y conversacion) por 4 anchos
+  (1366, 1024, 768 y 500 px) y 2 temas, con la cuenta que corresponde a cada
+  rol y siguiendo los redirects del servidor.
+- El banco se valido a si mismo con una hoja de prueba que tiene un degradado,
+  una sombra y una imagen rota conocidos: los detecta. Asi un resultado vacio
+  no se puede confundir con un fallo del medidor.
+- Se repitieron las capturas de la conversacion en claro, oscuro y en 768 px
+  para revisarlas a ojo.
+
+Verificacion:
+`python manage.py check` sin problemas. `python -B manage.py test`: 60 pruebas
+en verde. Barrido completo: 72 combinaciones (9 vistas x 4 anchos x 2 temas)
+con `scrollWidth` igual a `clientWidth`, 0 degradados, 0 sombras, 0
+superficies translucidas y 0 imagenes rotas. Contraste sin fallos AA en las 20
+vistas medidas. Carrusel: 6 de 6 imagenes cargadas y autoplay medido de 0 a
+338 y 676 px a los 2,6 y 5,4 segundos en 1366 px (a 1024, de 0 a 298 y 596 px),
+y de 0 a 706 y 1412 px en la vista apilada cuando el carrusel entra en
+pantalla. El banco informa el autoplay de 768 y 500 px como "no avanzo" porque
+a esa altura el carrusel queda por debajo del pliegue: es el comportamiento
+buscado y se comprobo con una ventana alta. La base de datos conserva sus 3
+usuarios, 4 preguntas y 3 respuestas, y el repositorio privado queda con el
+historial separado por fase.

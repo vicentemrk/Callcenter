@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.test import override_settings
 from online.models import Preguntas, Respuesta, Usuario
-from online.ia_utils import AsistenteIA
+from online.ia_utils import MENSAJE_NO_DISPONIBLE, AsistenteIA
 
 
 class ConversationAccessTests(TestCase):
@@ -159,27 +159,38 @@ class ConversationAccessTests(TestCase):
             },
         )
 
-    @override_settings(OPENAI_API_KEY='')
+    @override_settings(IA_API_KEY='test-key')
     @patch('online.ia_utils.OpenAI')
-    def test_openai_error_no_se_muestra_al_usuario(self, openai_client):
-        openai_client.side_effect = RuntimeError('detalle interno de OpenAI')
+    def test_openai_error_no_se_muestra_al_usuario(self, openai_cls):
+        # El remoto falla: el asistente responde con el mensaje amable.
+        openai_cls.return_value.chat.completions.create.side_effect = RuntimeError(
+            'detalle interno de OpenAI'
+        )
 
         respuesta = AsistenteIA().generar_respuesta_automatica(
             'Mi juego funciona lento'
         )
 
+        self.assertEqual(respuesta, MENSAJE_NO_DISPONIBLE)
         self.assertNotIn('detalle interno de OpenAI', respuesta)
-        self.assertEqual(
-            respuesta,
-            (
-                'Lo siento, el asistente no está disponible en este momento. '
-                'Inténtalo nuevamente más tarde.'
-            ),
+
+    @override_settings(IA_API_KEY='test-key')
+    @patch('online.ia_utils.OpenAI')
+    def test_generar_respuesta_nunca_propaga_excepcion_del_sdk(self, openai_cls):
+        # Cualquier excepcion del SDK se convierte en el mensaje amable.
+        openai_cls.return_value.chat.completions.create.side_effect = Exception(
+            'fallo del SDK'
         )
+
+        respuesta = AsistenteIA().generar_respuesta_automatica(
+            'Mi juego funciona lento'
+        )
+
+        self.assertEqual(respuesta, MENSAJE_NO_DISPONIBLE)
 
 
 class AsistenteIAClassificationTests(TestCase):
-    @override_settings(OPENAI_API_KEY='test-key')
+    @override_settings(IA_API_KEY='test-key')
     @patch('online.ia_utils.OpenAI')
     def test_clasificar_preguntas_usa_una_sola_llamada(self, openai_cls):
         openai_cls.return_value.chat.completions.create.return_value = Mock(
@@ -199,9 +210,11 @@ class AsistenteIAClassificationTests(TestCase):
             1,
         )
 
-    @override_settings(OPENAI_API_KEY='test-key')
+    @override_settings(IA_API_KEY='test-key')
     @patch('online.ia_utils.OpenAI')
-    def test_clasificar_preguntas_devuelve_otros_si_la_ia_falla(self, openai_cls):
+    def test_clasificar_preguntas_devuelve_otros_si_la_ia_falla(
+        self, openai_cls
+    ):
         openai_cls.return_value.chat.completions.create.side_effect = RuntimeError(
             'fallo de OpenAI'
         )
@@ -211,6 +224,7 @@ class AsistenteIAClassificationTests(TestCase):
             'El juego va lento',
         ])
 
+        # Sin respaldo local: cada texto queda como 'otros', sin excepcion.
         self.assertEqual(resultado, ['otros', 'otros'])
 
     @patch('online.ia_utils.OpenAI')
@@ -219,3 +233,117 @@ class AsistenteIAClassificationTests(TestCase):
 
         self.assertEqual(resultado, [])
         openai_cls.assert_not_called()
+
+
+class AsistenteIAMotorTests(TestCase):
+    """Pruebas del cliente remoto y del comportamiento sin clave (sin red real)."""
+
+    @override_settings(IA_API_KEY='')
+    @patch('online.ia_utils.OpenAI')
+    def test_sin_clave_devuelve_mensaje_no_disponible(self, openai_cls):
+        asistente = AsistenteIA()
+
+        self.assertEqual(asistente.motor_activo(), 'sin_clave')
+        self.assertFalse(asistente.disponible())
+
+        respuesta = asistente.generar_respuesta_automatica(
+            'No funciona el mouse'
+        )
+
+        self.assertEqual(respuesta, MENSAJE_NO_DISPONIBLE)
+        openai_cls.assert_not_called()
+
+    @override_settings(
+        IA_API_KEY='gsk_prueba',
+        IA_BASE_URL='https://api.groq.com/openai/v1',
+        IA_TIMEOUT=12,
+    )
+    @patch('online.ia_utils.OpenAI')
+    def test_cliente_remoto_usa_base_url_y_timeout(self, openai_cls):
+        openai_cls.return_value.chat.completions.create.return_value = Mock(
+            choices=[Mock(message=Mock(content='Respuesta remota'))]
+        )
+
+        asistente = AsistenteIA()
+        self.assertEqual(asistente.motor_activo(), 'groq')
+
+        respuesta = asistente.generar_respuesta_automatica('Mi juego va lento')
+
+        self.assertEqual(respuesta, 'Respuesta remota')
+        argumentos = openai_cls.call_args.kwargs
+        self.assertEqual(argumentos['api_key'], 'gsk_prueba')
+        self.assertEqual(
+            argumentos['base_url'],
+            'https://api.groq.com/openai/v1',
+        )
+        self.assertEqual(argumentos['timeout'], 12)
+        self.assertEqual(argumentos['max_retries'], 1)
+
+
+class RedireccionesServidorTests(TestCase):
+    """Las redirecciones por rol se resuelven en el servidor (HTTP 302)."""
+
+    def crear_usuario(self, username, **fields):
+        user = Usuario.objects.create(
+            usuario=username,
+            correo=f'{username}@example.com',
+            **fields,
+        )
+        user.set_password('test-password-123')
+        user.save()
+        return user
+
+    def test_index_anonimo_responde_200(self):
+        response = self.client.get(reverse('index'))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_index_redirige_al_cliente_a_su_inicio(self):
+        cliente = self.crear_usuario('cliente-index')
+        self.client.force_login(cliente)
+
+        response = self.client.get(reverse('index'))
+
+        self.assertRedirects(response, reverse('inicio', args=[cliente.id]))
+
+    def test_index_redirige_al_administrador_al_panel(self):
+        admin = self.crear_usuario('admin-index', rol='administrador')
+        self.client.force_login(admin)
+
+        response = self.client.get(reverse('index'))
+
+        self.assertRedirects(response, reverse('administracion'))
+
+    def test_index_redirige_al_tecnico_al_panel(self):
+        tecnico = self.crear_usuario('tecnico-index', rol='tecnico')
+        self.client.force_login(tecnico)
+
+        response = self.client.get(reverse('index'))
+
+        self.assertRedirects(response, reverse('administracion'))
+
+    def test_login_y_register_redirigen_al_cliente_logueado(self):
+        cliente = self.crear_usuario('cliente-auth')
+        self.client.force_login(cliente)
+
+        for nombre in ('Login', 'Register'):
+            with self.subTest(vista=nombre):
+                response = self.client.get(reverse(nombre))
+                self.assertRedirects(
+                    response,
+                    reverse('inicio', args=[cliente.id]),
+                )
+
+    @patch('online.views.AsistenteIA')
+    def test_inicio_redirige_al_tecnico_sin_llamar_a_la_ia(self, asistente_cls):
+        tecnico = self.crear_usuario('tecnico-inicio', rol='tecnico')
+        self.client.force_login(tecnico)
+
+        response = self.client.get(
+            reverse('inicio', args=[tecnico.id]),
+            {'buscar_ayuda': 'Mi juego va lento'},
+        )
+
+        self.assertRedirects(response, reverse('administracion'))
+        asistente_cls.assert_not_called()
+

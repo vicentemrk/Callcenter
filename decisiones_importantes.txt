@@ -7,15 +7,54 @@ Se decidio eliminar el codigo muerto de IA en GestionUsuarios y ModificarPregunt
 Se decidio guardar la categoria en el modelo Preguntas en lugar de recalcularla en cada visita: la clasificacion se ejecuta al crear la pregunta (Inicio) y al modificar su texto (ModificarPregunta), y los paneles administrativos solo leen el valor almacenado. Las preguntas existentes quedaron en "otros" y se reclasifican cuando se editan, para no depender de llamadas a OpenAI durante las migraciones.
 
 Se decidio que el tiempo promedio de respuesta mida la primera respuesta escrita por un administrador o tecnico, para preguntas creadas en los ultimos 30 dias, ya que es el tiempo real de atencion del call center. Se descarto promediar todas las respuestas porque los seguimientos inflarian el resultado, y se calcula en Python tras pedir a la base el minimo con Min y Q para mantener compatibilidad entre SQLite y MySQL. Si no hay respuestas de staff en el periodo, se muestra "Sin datos".
-Novedades:
-
-- Gestion de usuarios: se bloqueo en el servidor cualquier modificacion de
-  roles o estado sobre la propia cuenta del administrador conectado en
-  GestionUsuarios. Para cambiarse los permisos a si mismo, otro administrador
-  debe hacerlo. La regla cubre autodesactivacion y autodegradacion ante POSTs
-  manipulados, y va mas alla de la UI: la fila del propio admin se muestra
-  de solo lectura en la plantilla, pero la proteccion real vive en la vista.
-  La autoeliminacion seguia bloqueada en EliminarUsuario. Tambien se agrego
-  a la plantilla un bloque de mensajes porque los messages que la vista ya
-  generaba nunca se mostraban.
-
+Novedades:
+
+- Gestion de usuarios: se bloqueo en el servidor cualquier modificacion de
+  roles o estado sobre la propia cuenta del administrador conectado en
+  GestionUsuarios. Para cambiarse los permisos a si mismo, otro administrador
+  debe hacerlo. La regla cubre autodesactivacion y autodegradacion ante POSTs
+  manipulados, y va mas alla de la UI: la fila del propio admin se muestra
+  de solo lectura en la plantilla, pero la proteccion real vive en la vista.
+  La autoeliminacion seguia bloqueada en EliminarUsuario. Tambien se agrego
+  a la plantilla un bloque de mensajes porque los messages que la vista ya
+  generaba nunca se mostraban.
+
+Decisiones de la fase de presentacion:
+
+- IA: se dejo un unico proveedor remoto, Groq (API compatible con OpenAI,
+  modelo openai/gpt-oss-20b), cuyo plan gratuito mantiene el costo en $0.
+  La logica vive en una fachada (online/ia_utils.py) y las vistas no conocen
+  al proveedor. Si no hay clave, el texto esta vacio o el proveedor falla, la
+  app devuelve MENSAJE_NO_DISPONIBLE y clasifica en "otros"; nunca propaga una
+  excepcion hacia la vista.
+- El asistente no guarda estado: no hay cuota horaria ni cache de respuestas.
+- Diseno plano: se eliminaron degradados (linear y radial), sombras de caja,
+  sombras de texto, backdrop-filter y superficies translucidas. Se reemplazan
+  por color solido y borde de 1 px; el hover cambia de color solido y el foco
+  se marca con outline visible en claro y oscuro. Motivo: identidad visual
+  limpia y contraste predecible en los dos temas.
+- Carrusel de gatos: seis imagenes propias en online/static/img/Gato_1..6.webp
+  servidas localmente (sin CDN ni descargas en tiempo de ejecucion) en el
+  recuadro del chat. Usa scroll-snap nativo, asi que funciona sin JavaScript;
+  las flechas y los puntos son mejora progresiva. Avanza solo cada 2 segundos,
+  en bucle, y se detiene con el puntero encima, con un control enfocado, con la
+  pestana oculta, fuera de pantalla y durante 6 segundos tras un gesto manual.
+- Los redirects por rol se resuelven en el servidor (Index, Inicio, Login y
+  Register) mediante _redirigir_por_rol, en lugar de window.location.href en
+  las plantillas: se elimina el parpadeo, funciona con JavaScript desactivado
+  y la regla queda en un solo lugar.
+- Panel administrativo: paginacion de 20 por pagina con Paginator.get_page,
+  buscador q y filtros por estado, prioridad y categoria, periodo de analytics
+  de 7/30/90 dias, e invariante de ultimo administrador activo (no se puede
+  degradar, desactivar ni eliminar al ultimo admin activo).
+- Modo oscuro con overrides concentrados en online/static/tema.css bajo
+  html[data-theme="dark"], mas tema.js y un script anti-FOUC en el head: no se
+  duplican hojas de estilo ni se ensucia el CSS base.
+- Repositorio: se creo un historial limpio en
+  https://github.com/vicentemrk/Callcenter.git (privado) en lugar de reparar el
+  .git anterior, que estaba danado. .env queda fuera de git y solo se versiona
+  .env.example sin secretos.
+- Hosting previsto (no implementado aun): PythonAnywhere free como principal y
+  Alwaysdata free como respaldo. Se descarta Render porque su sistema de
+  archivos es efimero (se pierden SQLite y los archivos subidos) y GitHub Pages
+  solo sirve contenido estatico.
