@@ -7,9 +7,6 @@
 {% block title %}Modificar pregunta{% endblock %}
 
 {% block content %}
-    {% if user.rol != 'administrador' and user.rol != 'tecnico' %}
-    <script>window.location.href = "{% url 'inicio' user.id %}";</script>
-    {% else %}
     <h1 id="TituloMod">Modificar pregunta</h1>
     <div class="MainTodo">
         <div class="MainPreguntar">
@@ -22,5 +19,4 @@
             </div>
         </div>
     </div>
-    {% endif %}
 {% endblock %}

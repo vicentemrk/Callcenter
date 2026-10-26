@@ -1,115 +1,166 @@
 {% extends "componentes/header.html" %}
 {% load static %}
 {% block links %}
-<link rel="stylesheet" href="{% static 'inicio.css' %}">
+<link rel="stylesheet" href="{% static 'inicio.css' %}?v=20261026-inicio">
 {% endblock %}
 
 {% block title %}Inicio{% endblock %}
 
 {% block content %}
-    {% if user.id == id and user.rol == 'cliente' %}
-    <div class="MainTodo">
-        <div class="MainPreguntar">
-            <div class="InsPreguntas">
-                <form method="post">
-                    {{form}}
-                    {% csrf_token %}
-                    <input type="submit" value="Crear pregunta">
-                </form>
+<div class="MainTodo">
+    <div class="MainPreguntar">
+        <div class="InsPreguntas" id="formulario-pregunta">
+            <div class="InsPreguntas-cabecera">
+                <h2>Nueva pregunta</h2>
+                <p>Cuéntanos qué está pasando y un especialista te responderá en la conversación.</p>
             </div>
-
-            <div class="asistente-ia">
-                <h3 class="asistente-ia-titulo">
-                    <i class="fas fa-robot"></i> Asistente Virtual IA
-                </h3>
-                <form method="get" action="" class="asistente-ia-form">
-                    <div class="asistente-ia-campos">
-                        <input type="text" name="buscar_ayuda" maxlength="250" placeholder="¿En qué puedo ayudarte? Ej: problema con internet, juego lento..."
-                               value="{{ request.GET.buscar_ayuda|default:'' }}"
-                               class="asistente-ia-input">
-                        <button type="submit" class="asistente-ia-boton">
-                            <i class="fas fa-search"></i> Buscar
-                        </button>
-                    </div>
-                </form>
-                <p class="asistente-ia-descripcion">
-                    Nuestra IA puede ayudarte con problemas de hardware, software, conexión y más.
+            <form method="post">
+                {{ form }}
+                {% csrf_token %}
+                <p class="contador-caracteres" data-contador
+                   data-max="{% firstof form.Pregunta.field.widget.attrs.maxlength form.Pregunta.field.max_length 750 %}">
+                    <span data-contador-valor>0</span>/<span data-contador-maximo>750</span> caracteres
                 </p>
-                <div class="ia-privacidad-aviso" role="note">
-                    <strong><i class="fas fa-info-circle"></i> Uso responsable del asistente</strong>
-                    <p>
-                        No ingreses contraseñas, RUT, correos electrónicos ni otros
-                        datos personales o confidenciales. Las respuestas de la IA
-                        son orientativas y pueden contener errores.
-                    </p>
+                <input type="submit" value="Crear pregunta">
+            </form>
+        </div>
+
+        <div class="asistente-ia">
+            <h3 class="asistente-ia-titulo">
+                <i class="fas fa-robot" aria-hidden="true"></i> Asistente Virtual IA
+            </h3>
+            <form method="get" action="" class="asistente-ia-form">
+                <div class="asistente-ia-campos">
+                    <label class="visually-hidden" for="buscar-ayuda">Consulta para el asistente</label>
+                    <input id="buscar-ayuda" type="text" name="buscar_ayuda" maxlength="250" placeholder="¿En qué puedo ayudarte? Ej: problema con internet, juego lento..."
+                           value="{{ request.GET.buscar_ayuda|default:'' }}"
+                           class="asistente-ia-input">
+                    <button type="submit" class="asistente-ia-boton">
+                        <i class="fas fa-search" aria-hidden="true"></i> Buscar
+                    </button>
+                </div>
+            </form>
+            <p class="asistente-ia-descripcion">
+                Nuestra IA puede ayudarte con problemas de hardware, software, conexión y más.
+            </p>
+            <div class="ia-privacidad-aviso" role="note">
+                <strong><i class="fas fa-info-circle" aria-hidden="true"></i> Uso responsable del asistente</strong>
+                <p>
+                    No ingreses contraseñas, RUT, correos electrónicos ni otros
+                    datos personales o confidenciales. Las respuestas de la IA
+                    son orientativas y pueden contener errores.
+                </p>
+            </div>
+        </div>
+
+        {% if sugerencias_ia %}
+        <div class="resultados-ia">
+            <h4 class="resultados-ia-titulo">
+                <i class="fas fa-lightbulb" aria-hidden="true"></i> Sugerencias para: "{{ sugerencias_ia.consulta_original }}"
+            </h4>
+            <div class="respuesta-ia">
+                <div class="respuesta-ia-titulo">
+                    <i class="fas fa-robot" aria-hidden="true"></i>
+                    <strong>Respuesta Automática:</strong>
+                </div>
+                <div class="respuesta-ia-texto">
+                    {{ sugerencias_ia.respuesta_automatica }}
                 </div>
             </div>
-
-            {% if sugerencias_ia %}
-            <div class="resultados-ia">
-                <h4 class="resultados-ia-titulo">
-                    <i class="fas fa-lightbulb"></i> Sugerencias para: "{{ sugerencias_ia.consulta_original }}"
-                </h4>
-                <div class="respuesta-ia">
-                    <div class="respuesta-ia-titulo">
-                        <i class="fas fa-robot"></i>
-                        <strong>Respuesta Automática:</strong>
-                    </div>
-                    <div class="respuesta-ia-texto">
-                        {{ sugerencias_ia.respuesta_automatica }}
-                    </div>
+            {% if sugerencias_ia.recomendaciones %}
+            <div class="recomendaciones-ia">
+                <div class="recomendaciones-ia-titulo">
+                    <i class="fas fa-star" aria-hidden="true"></i>
+                    <strong>Preguntas Similares Resueltas:</strong>
                 </div>
-                {% if sugerencias_ia.recomendaciones %}
-                <div class="recomendaciones-ia">
-                    <div class="recomendaciones-ia-titulo">
-                        <i class="fas fa-star"></i>
-                        <strong>Preguntas Similares Resueltas:</strong>
+                {% for rec in sugerencias_ia.recomendaciones %}
+                <div class="recomendacion">
+                    <div class="recomendacion-cabecera">
+                        <strong>{{ rec.pregunta_similar }}</strong>
+                        <span class="similitud">Similitud: {{ rec.similitud }}</span>
                     </div>
-                    {% for rec in sugerencias_ia.recomendaciones %}
-                    <div class="recomendacion">
-                        <div class="recomendacion-cabecera">
-                            <strong>{{ rec.pregunta_similar }}</strong>
-                            <span class="similitud">Similitud: {{ rec.similitud }}</span>
-                        </div>
-                        <p class="recomendacion-respuesta">{{ rec.respuesta }}</p>
-                        {% if rec.categoria %}
-                        <div class="recomendacion-categoria"><span>{{ rec.categoria }}</span></div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
+                    <p class="recomendacion-respuesta">{{ rec.respuesta }}</p>
+                    {% if rec.categoria %}
+                    <div class="recomendacion-categoria"><span>{{ rec.categoria }}</span></div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="sin-recomendaciones">
-                    <i class="fas fa-info-circle"></i>
-                    <p>No se encontraron preguntas similares en nuestra base de datos.</p>
-                </div>
-                {% endif %}
-                <div class="crear-pregunta-ia">
-                    <a href="?buscar_ayuda={{ sugerencias_ia.consulta_original|urlencode }}#formulario-pregunta"
-                       class="crear-pregunta-ia-boton">
-                        <i class="fas fa-question-circle"></i> Crear pregunta sobre este tema
-                    </a>
-                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="sin-recomendaciones">
+                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                <p>No se encontraron preguntas similares en nuestra base de datos.</p>
             </div>
             {% endif %}
-        </div>
-
-        <div class="MainPreguntas">
-            <div id="Titulo"><h2>Historial de tus preguntas</h2></div>
-            {% for pregunta in Preguntas %}
-            <div class="Preguntas">
-                <a href="{% url 'respuestas' user.id pregunta.idPregunta %}">
-                    <h1>Titulo: {{pregunta.Titulo}}</h1>
-                    <h4>{{pregunta.Fecha_creacion}}</h4>
+            <div class="crear-pregunta-ia">
+                <a href="?buscar_ayuda={{ sugerencias_ia.consulta_original|urlencode }}#formulario-pregunta"
+                   class="crear-pregunta-ia-boton">
+                    <i class="fas fa-question-circle" aria-hidden="true"></i> Crear pregunta sobre este tema
                 </a>
             </div>
-            {% endfor %}
         </div>
+        {% endif %}
     </div>
-    {% else %}
-    {% if user.rol == 'administrador' or user.rol == 'tecnico' %}
-    <script>window.location.href = "{% url 'administracion' %}";</script>
-    {% endif %}
-    <script>window.location.href = "{% url 'inicio' user.id %}";</script>
-    {% endif %}
+
+    <div class="MainPreguntas">
+        <div id="Titulo">
+            <h2>Historial de tus preguntas</h2>
+            {% if Preguntas %}
+            <p class="MainPreguntas-sub">{{ Preguntas|length }} conversación{{ Preguntas|length|pluralize:"es" }} registrada{{ Preguntas|length|pluralize:"s" }}</p>
+            {% endif %}
+        </div>
+        {% for pregunta in Preguntas %}
+        <div class="Preguntas">
+            <a href="{% url 'respuestas' user.id pregunta.idPregunta %}">
+                <div class="Preguntas-fila">
+                    <h3 class="Preguntas-titulo">{{ pregunta.Titulo }}</h3>
+                    <span class="Preguntas-fecha">{{ pregunta.Fecha_creacion|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="Preguntas-meta">
+                    <span class="Preguntas-categoria">{{ pregunta.get_categoria_display }}</span>
+                    <span class="admin-badge admin-badge-{{ pregunta.estado }}">{{ pregunta.get_estado_display }}</span>
+                    <span class="admin-badge admin-badge-prioridad-{{ pregunta.prioridad }}">{{ pregunta.get_prioridad_display }}</span>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="Preguntas-vacio">
+            <i class="fas fa-comments" aria-hidden="true"></i>
+            <p>Todavía no tienes preguntas. Escribe la primera arriba y te responderemos aquí.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    (function () {
+        var campo = document.querySelector('textarea[name="Pregunta"]');
+        var contador = document.querySelector('[data-contador]');
+        if (!campo || !contador) {
+            return;
+        }
+
+        var salida = contador.querySelector('[data-contador-valor]');
+        var topeVisible = contador.querySelector('[data-contador-maximo]');
+        var maximo = parseInt(contador.dataset.max, 10) || parseInt(campo.getAttribute('maxlength'), 10) || 0;
+
+        if (topeVisible && maximo > 0) {
+            topeVisible.textContent = maximo;
+            campo.setAttribute('maxlength', maximo);
+        }
+
+        function actualizar() {
+            var largo = campo.value.length;
+            if (salida) {
+                salida.textContent = largo;
+            }
+            contador.classList.toggle('contador-caracteres-limite', maximo > 0 && largo >= maximo);
+        }
+
+        campo.addEventListener('input', actualizar);
+        actualizar();
+    })();
+</script>
 {% endblock %}

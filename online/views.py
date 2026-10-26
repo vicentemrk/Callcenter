@@ -11,11 +11,21 @@ from online.models import Preguntas, Usuario, Respuesta
 from online.ia_utils import AsistenteIA
 from online.recomendaciones_ia import RecomendadorIA
 
+
+def _redirigir_por_rol(usuario):
+    """Manda a cada rol a su pantalla de inicio."""
+    if usuario.rol in ('administrador', 'tecnico'):
+        return redirect('administracion')
+    return redirect('inicio', id=usuario.id)
+
+
 # Vista para la página principal
 def Index(request):
     """
     Página principal del sitio
     """
+    if request.user.is_authenticated:
+        return _redirigir_por_rol(request.user)
     return render(request, "index.html")
 
 # Vista para logout personalizada
@@ -33,6 +43,8 @@ def Inicio(request, id):
     """
     Vista del panel de usuario
     """
+    if request.user.rol != 'cliente':
+        return _redirigir_por_rol(request.user)
     try:
         usuario = Usuario.objects.get(id=id)
         if request.user.id != usuario.id:
@@ -46,7 +58,7 @@ def Inicio(request, id):
         """
         consulta = request.GET.get("buscar_ayuda", "").strip()[:250]
         if consulta:
-            asistente = AsistenteIA()
+            asistente = AsistenteIA(usuario=request.user)
             recomendador = RecomendadorIA()
             sugerencias_ia = {
                 "consulta_original": consulta,
@@ -65,7 +77,8 @@ def Inicio(request, id):
                 pregunta.Usuario = usuario
                 pregunta.Fecha_creacion = now
                 pregunta.categoria = (
-                    AsistenteIA().clasificar_pregunta(pregunta.Pregunta)
+                    AsistenteIA(usuario=request.user)
+                    .clasificar_pregunta(pregunta.Pregunta)
                 )
                 pregunta.save()
                 return redirect('inicio', id=id)
@@ -133,6 +146,11 @@ class RegisterView(CreateView):
     template_name = 'register.html'
     success_url = reverse_lazy('index')
 
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return _redirigir_por_rol(request.user)
+        return super().get(request, *args, **kwargs)
+
     def form_valid(self, form):
         request = self.request
         user = form.save()
@@ -145,6 +163,11 @@ class LoginView(FormView):
     form_class = LoginForm
     template_name = 'login.html'
     success_url = reverse_lazy('index')
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return _redirigir_por_rol(request.user)
+        return super().get(request, *args, **kwargs)
 
     def form_valid(self, form):
         request = self.request

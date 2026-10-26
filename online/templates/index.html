@@ -4,17 +4,6 @@
 {% block title %}Inicio{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-{% if user.rol == 'administrador' or user.rol == 'tecnico' %}
-<script>
-    window.location.href = "{% url 'administracion' %}";
-</script>
-{% else %}
-<script>
-    window.location.href = "{% url 'inicio' user.id %}";
-</script>
-{% endif %}
-{% endif %}
 <div class="Banner">
         <div class="contLeft"></div>
         <div class="contRight">
@@ -22,7 +11,7 @@
             <p>Comunicate con el mejor call center gamer, nosotros te brindaremos la solución necesaria para tu
                 problema, no dudes más!</p>
             <div class="contBtn">
-                <button id="btnIngresar" onclick="window.location.href = '{% url 'Login' %}'">Ingresar</button>
+                <a id="btnIngresar" href="{% url 'Login' %}">Ingresar</a>
             </div>
         </div>
     </div>
@@ -38,7 +27,7 @@
         <h1>Comunicate con nosotros</h1>
         <p>Escribenos y nuestros profesionales solucionaran tu problema en tan solo un momento!</p>
         <div class="contBtn contBtn-final">
-            <button id="btnIngresar" onclick="window.location.href = '{% url 'Login' %}'">Ingresar</button>
+            <a id="btnIngresar" href="{% url 'Login' %}">Ingresar</a>
         </div>
 </div>
 {% endblock %}

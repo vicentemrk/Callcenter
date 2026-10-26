@@ -8,9 +8,6 @@
 
 {% block content %}
 <div class="mainLogin">
-    {% if user.is_authenticated %}
-    <script>window.location.href = "{% url 'inicio' user.id %}";</script>
-    {% else %}
     <h2>Iniciar sesión</h2>
     <form id="Formulario" method="POST">
         {{form}}
@@ -18,6 +15,5 @@
         <input value="Iniciar Sesion" type="submit">
     </form>
     <p>¿Aun no tienes cuenta? <a href="{% url 'Register' %}">Registrate ya!</a></p>
-    {% endif %}
 </div>
 {% endblock %}

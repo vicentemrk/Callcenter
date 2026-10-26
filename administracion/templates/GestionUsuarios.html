@@ -1,48 +1,112 @@
 {% extends "componentes/header.html" %}
 {% load static %}
 {% block links %}
-<link rel="stylesheet" href="{% static 'gestion.css' %}">
+<link rel="stylesheet" href="{% static 'gestion.css' %}?v=20261026-usuarios">
 {% endblock %}
 
 {% block title %}Gestión de usuarios{% endblock %}
 
 {% block content %}
-    {% if user.is_authenticated %}
-        {% if user.rol != 'administrador' %}
-            {% if user.rol == 'tecnico' %}
-                <script>window.location.href = "{% url 'administracion' %}";</script>
-            {% endif %}
-            <script>window.location.href = "{% url 'inicio' user.id %}";</script>
-        {% endif %}
+<div class="users-wrap">
+    <header class="users-heading">
         <h1 id="Titulo">Gestion de Usuarios</h1>
-        {% if messages %}
-        <div class="users-messages">
-            {% for message in messages %}
-            <div class="users-message users-message-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+        <p class="users-subtitle">
+            Revisa las cuentas del call center y ajusta su rol o estado.
+        </p>
+    </header>
+
+    {% if messages %}
+    <div class="users-messages">
+        {% for message in messages %}
+        <div class="users-message users-message-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="users-contadores" aria-label="Resumen de usuarios">
+        <article class="users-contador">
+            <span class="users-contador-label">Administradores</span>
+            <strong class="users-contador-valor">{{ contadores.administradores }}</strong>
+        </article>
+        <article class="users-contador">
+            <span class="users-contador-label">Técnicos</span>
+            <strong class="users-contador-valor">{{ contadores.tecnicos }}</strong>
+        </article>
+        <article class="users-contador">
+            <span class="users-contador-label">Clientes</span>
+            <strong class="users-contador-valor">{{ contadores.clientes }}</strong>
+        </article>
+        <article class="users-contador users-contador-inactivos">
+            <span class="users-contador-label">Inactivos</span>
+            <strong class="users-contador-valor">{{ contadores.inactivos }}</strong>
+        </article>
+        <article class="users-contador users-contador-total">
+            <span class="users-contador-label">Total</span>
+            <strong class="users-contador-valor">{{ contadores.total }}</strong>
+        </article>
+    </section>
+
+    <section class="users-panel">
+        <form method="get" action="{% url 'gestion_usuarios' %}" class="users-filtros" role="search">
+            <div class="users-field users-field-busqueda">
+                <label for="users-q">Buscar</label>
+                <input id="users-q" type="search" name="q" value="{{ filtros.q }}"
+                       placeholder="Usuario o correo" autocomplete="off">
+            </div>
+            <div class="users-field">
+                <label for="users-rol">Rol</label>
+                <select id="users-rol" name="rol">
+                    <option value="">Todos</option>
+                    {% for valor, etiqueta in roles %}
+                    <option value="{{ valor }}" {% if filtros.rol == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="users-field">
+                <label for="users-activo">Estado</label>
+                <select id="users-activo" name="activo">
+                    <option value="">Todos</option>
+                    <option value="1" {% if filtros.activo == '1' %}selected{% endif %}>Activos</option>
+                    <option value="0" {% if filtros.activo == '0' %}selected{% endif %}>Inactivos</option>
+                </select>
+            </div>
+            <div class="users-field users-field-acciones">
+                <button type="submit" class="users-btn">
+                    <i class="fas fa-magnifying-glass" aria-hidden="true"></i> Buscar
+                </button>
+                <a href="{% url 'gestion_usuarios' %}" class="users-btn users-btn-outline">Limpiar</a>
+            </div>
+        </form>
+
+        <div class="users-panel-head">
+            <h2>Cuentas registradas</h2>
+            <p class="users-count" role="status">
+                {{ total_filtrado }} resultado{{ total_filtrado|pluralize:"s" }}
+            </p>
         </div>
-        {% endif %}
-        <div class="Container">
-            <table class="table">
+
+        {% if Usuarios %}
+        <div class="users-table-wrap">
+            <table class="table users-table">
+                <caption class="visually-hidden">Cuentas registradas en el call center</caption>
                 <thead>
-                  <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">Usuario</th>
-                    <th scope="col">Correo</th>
-                    <th scope="col">Rut</th>
-                    <th scope="col">Activo</th>
-                    <th scope="col">Rol</th>
-                    <th scope="col">Ultima Conexión</th>
-                    <th scope="col"></th>
-                    <th></th>
-                  </tr>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Correo</th>
+                        <th scope="col">Rut</th>
+                        <th scope="col">Activo</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Última conexión</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {% for usuario in Usuarios %}
                     <tr>
-                        <th scope="row">{{ usuario.id }}</th>
+                        <th scope="row" class="users-id">{{ usuario.id }}</th>
                         <td>
-                            {{ usuario.usuario }}
+                            <span class="users-nombre">{{ usuario.usuario }}</span>
                             {% if usuario.id == user.id %}
                             <span class="users-self-note">Tu cuenta</span>
                             {% endif %}
@@ -53,11 +117,13 @@
                             </form>
                             {% endif %}
                         </td>
-                        <td>{{ usuario.correo }}</td>
-                        <td>{{ usuario.rut }}</td>
+                        <td class="users-correo">{{ usuario.correo }}</td>
+                        <td>{{ usuario.rut|default:"—" }}</td>
                         <td>
                             {% if usuario.id == user.id %}
-                            <span class="users-role-value">{% if usuario.activo %}Sí{% else %}No{% endif %}</span>
+                            <span class="users-pill {% if usuario.activo %}users-pill-activo{% else %}users-pill-inactivo{% endif %}">
+                                {% if usuario.activo %}Activo{% else %}Inactivo{% endif %}
+                            </span>
                             {% else %}
                             <label class="visually-hidden" for="activo-{{ usuario.id }}">Cuenta activa</label><input id="activo-{{ usuario.id }}" type="checkbox" name="activo" form="user-change-{{ usuario.id }}" {% if usuario.activo %}checked{% endif %}/>
                             {% endif %}
@@ -74,26 +140,42 @@
                             </select>
                             {% endif %}
                         </td>
-                        <td>{{ usuario.last_login }}</td>
-                        <td>
-                            {% if usuario.id != user.id %}
-                            <button id="btnModif" type="submit" form="user-change-{{ usuario.id }}"><i class="fa-solid fa-pen"></i></button>
-                            {% endif %}
+                        <td class="users-fecha">
+                            {{ usuario.last_login|date:"d/m/Y H:i"|default:"Sin conexiones" }}
                         </td>
-                        <td>
+                        <td class="users-acciones">
                             {% if usuario.id != user.id %}
-                            <form method="post" action="{% url 'eliminar_usuario' usuario.id %}" onsubmit="return confirm('¿Estas seguro de borrar este usuario?')">
+                            <button id="btnModif" class="users-btn-accion" type="submit" form="user-change-{{ usuario.id }}" title="Guardar cambios" aria-label="Guardar cambios de {{ usuario.usuario }}">
+                                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                            </button>
+                            <form method="post" action="{% url 'eliminar_usuario' usuario.id %}" class="users-form-borrar" onsubmit="return confirm('¿Estas seguro de borrar este usuario?')">
                                 {% csrf_token %}
-                                <button type="submit"><i class="fa-regular fa-trash-can"></i></button>
+                                <button type="submit" class="users-btn-accion users-btn-borrar" title="Eliminar usuario" aria-label="Eliminar a {{ usuario.usuario }}">
+                                    <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                                </button>
                             </form>
+                            {% else %}
+                            <span class="users-acciones-vacio" aria-hidden="true">—</span>
                             {% endif %}
                         </td>
                     </tr>
-                {% empty %}
-                    <tr><td colspan="9" class="users-empty">No hay usuarios para mostrar.</td></tr>
                 {% endfor %}
                 </tbody>
-              </table>
+            </table>
         </div>
-    {% endif %}
+        {% else %}
+        <div class="users-vacio">
+            <i class="fas fa-user-slash" aria-hidden="true"></i>
+            {% if filtros.q or filtros.rol or filtros.activo %}
+                <h3>No hay usuarios que coincidan con los filtros</h3>
+                <p>Prueba con otro nombre, correo o rol.</p>
+                <a class="users-btn" href="{% url 'gestion_usuarios' %}">Limpiar filtros</a>
+            {% else %}
+                <h3>No hay usuarios registrados</h3>
+                <p>Las cuentas aparecerán aquí en cuanto se registren.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+</div>
 {% endblock %}

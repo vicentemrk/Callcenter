@@ -1,58 +1,155 @@
 {% extends "componentes/header.html" %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}Análisis de preguntas con IA{% endblock %}
 
 {% block links %}
-<link rel="stylesheet" href="{% static 'analytics.css' %}">
+<link rel="stylesheet" href="{% static 'analytics.css' %}?v=20261026-analytics">
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>🧠 Analytics con Inteligencia Artificial</h1>
-    
-    <div class="dashboard">
-        <!-- Métricas Principales -->
-        <div class="metricas-grid">
-            <div class="metrica-card">
-                <h3>📊 Preguntas este mes</h3>
-                <p class="numero">{{ analytics_data.total_preguntas_mes }}</p>
-            </div>
-            <div class="metrica-card">
-                <h3>⏱️ Preguntas sin respuesta</h3>
-                <p class="numero">{{ analytics_data.preguntas_sin_respuesta }}</p>
-            </div>
-            <div class="metrica-card">
-                <h3>⚡ Tiempo Promedio de Primera Respuesta</h3>
-                <p class="numero">{{ analytics_data.tiempo_promedio_respuesta }}</p>
-            </div>
+<div class="analytics-wrap">
+    <header class="analytics-head">
+        <div class="analytics-head-texto">
+            <p class="analytics-kicker">Inteligencia artificial</p>
+            <h1 class="analytics-titulo">Analytics con IA</h1>
+            <p class="analytics-sub">
+                Rendimiento de las preguntas en
+                {{ analytics_data.periodo.etiqueta|default:"el período seleccionado" }}.
+            </p>
         </div>
+        <nav class="periodo-selector" aria-label="Período de análisis">
+            <a class="periodo-opcion{% if analytics_data.periodo.dias == 7 %} is-activa{% endif %}"
+               href="?dias=7"{% if analytics_data.periodo.dias == 7 %} aria-current="page"{% endif %}>7 días</a>
+            <a class="periodo-opcion{% if analytics_data.periodo.dias == 30 %} is-activa{% endif %}"
+               href="?dias=30"{% if analytics_data.periodo.dias == 30 %} aria-current="page"{% endif %}>30 días</a>
+            <a class="periodo-opcion{% if analytics_data.periodo.dias == 90 %} is-activa{% endif %}"
+               href="?dias=90"{% if analytics_data.periodo.dias == 90 %} aria-current="page"{% endif %}>90 días</a>
+        </nav>
+    </header>
 
-        <!-- Tendencias por Categoría -->
-        <div class="categorias-section">
-            <h3>🎯 Tendencias por Categoría (IA)</h3>
-            <div class="categorias-grid">
-                {% for categoria, cantidad in analytics_data.categorias_tendencia.items %}
-                <div class="categoria-card">
-                    <span class="categoria-nombre">{{ categoria|title }}</span>
-                    <span class="categoria-cantidad">{{ cantidad }}</span>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Usuarios Más Activos -->
-        <div class="usuarios-section">
-            <h3>👥 Usuarios Más Activos</h3>
-            <div class="usuarios-list">
-                {% for usuario in analytics_data.usuarios_activos %}
-                <div class="usuario-card">
-                    <span>{{ usuario.usuario }}</span>
-                    <span class="preguntas-count">{{ usuario.num_preguntas }} preguntas</span>
-                </div>
-                {% endfor %}
-            </div>
+    {% if analytics_data.error %}
+    <div class="analytics-error" role="alert">
+        <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+        <div>
+            <h2>No se pudieron cargar los analytics</h2>
+            <p>Vuelve a intentarlo en unos segundos o prueba con otro período.</p>
+            <a class="analytics-btn" href="{% url 'analytics_ia' %}">Recargar</a>
         </div>
     </div>
+    {% else %}
+    <div class="dashboard">
+        <div class="metricas-grid">
+            <article class="metrica-card">
+                <h3>Preguntas del período</h3>
+                <p class="numero">{{ analytics_data.total_preguntas_mes|default:"0" }}</p>
+                <p class="metrica-nota">{{ analytics_data.periodo.etiqueta|default:"Últimos 30 días" }}</p>
+            </article>
+
+            <article class="metrica-card">
+                <h3>Preguntas resueltas</h3>
+                <p class="numero">{{ analytics_data.porcentaje_resueltas|default:0|floatformat:1 }}<span class="numero-unidad">%</span></p>
+                <div class="metrica-barra" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                     aria-valuenow="{{ analytics_data.porcentaje_resueltas|default:0|unlocalize }}"
+                     aria-label="Porcentaje de preguntas resueltas">
+                    <span class="metrica-barra-fill" style="width: {{ analytics_data.porcentaje_resueltas|default:0|unlocalize }}%;"></span>
+                </div>
+            </article>
+
+            <article class="metrica-card metrica-card-alerta">
+                <h3>Sin respuesta</h3>
+                <p class="numero">{{ analytics_data.preguntas_sin_respuesta|default:"0" }}</p>
+                <p class="metrica-nota">Requieren atención del equipo</p>
+            </article>
+
+            <article class="metrica-card">
+                <h3>Usuarios activos</h3>
+                <p class="numero">{{ analytics_data.usuarios_activos|length }}</p>
+                <p class="metrica-nota">Con más preguntas registradas</p>
+            </article>
+
+            <article class="metrica-card">
+                <h3>Tiempo promedio de respuesta</h3>
+                <p class="numero numero-texto">{{ analytics_data.tiempo_promedio_respuesta|default:"Sin datos" }}</p>
+                <p class="metrica-nota">Primera respuesta del equipo</p>
+            </article>
+
+            <article class="metrica-card">
+                <h3>Respuestas enviadas</h3>
+                <p class="numero">{{ analytics_data.total_respuestas|default:"0" }}</p>
+                <p class="metrica-nota">En el período seleccionado</p>
+            </article>
+        </div>
+
+        <div class="analytics-grid">
+            <section class="categorias-section" aria-labelledby="categorias-titulo">
+                <div class="panel-head">
+                    <div>
+                        <h2 id="categorias-titulo">Tendencias por categoría</h2>
+                        <p class="panel-sub">Clasificación automática de las preguntas del período.</p>
+                    </div>
+                    <span class="panel-tag">
+                        {{ analytics_data.categorias_lista|length }}
+                        categoría{{ analytics_data.categorias_lista|length|pluralize:"s" }}
+                    </span>
+                </div>
+
+                {% if analytics_data.categorias_lista %}
+                <ul class="categorias-lista">
+                    {% for item in analytics_data.categorias_lista %}
+                    <li class="categoria-card">
+                        <div class="categoria-fila">
+                            <span class="categoria-nombre">{{ item.etiqueta }}</span>
+                            <span class="categoria-datos">
+                                <strong>{{ item.cantidad }}</strong>
+                                <span class="categoria-porcentaje">{{ item.porcentaje|floatformat:1 }}%</span>
+                            </span>
+                        </div>
+                        <div class="categoria-barra" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                             aria-valuenow="{{ item.porcentaje|unlocalize }}"
+                             aria-label="Porcentaje de preguntas de {{ item.etiqueta }}">
+                            <span class="categoria-barra-fill" style="width: {{ item.porcentaje|unlocalize }}%;"></span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="analytics-vacio">
+                    <i class="fas fa-chart-simple" aria-hidden="true"></i>
+                    <h3>Sin datos en este período</h3>
+                    <p>No llegaron preguntas en los últimos {{ analytics_data.periodo.dias|default:"30" }} días.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="usuarios-section" aria-labelledby="usuarios-titulo">
+                <div class="panel-head">
+                    <div>
+                        <h2 id="usuarios-titulo">Usuarios más activos</h2>
+                        <p class="panel-sub">Ranking por cantidad de preguntas.</p>
+                    </div>
+                </div>
+
+                {% if analytics_data.usuarios_activos %}
+                <ul class="usuarios-list">
+                    {% for usuario in analytics_data.usuarios_activos %}
+                    <li class="usuario-card">
+                        <span class="usuario-puesto" aria-hidden="true">{{ forloop.counter }}</span>
+                        <span class="usuario-nombre">{{ usuario.usuario }}</span>
+                        <span class="preguntas-count">{{ usuario.num_preguntas }} pregunta{{ usuario.num_preguntas|pluralize:"s" }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="analytics-vacio">
+                    <i class="fas fa-users" aria-hidden="true"></i>
+                    <h3>Sin usuarios para mostrar</h3>
+                    <p>Aún no hay preguntas registradas de clientes.</p>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
