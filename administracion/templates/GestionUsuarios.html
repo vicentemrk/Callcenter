@@ -1,0 +1,99 @@
+{% extends "componentes/header.html" %}
+{% load static %}
+{% block links %}
+<link rel="stylesheet" href="{% static 'gestion.css' %}">
+{% endblock %}
+
+{% block title %}Gestión de usuarios{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        {% if user.rol != 'administrador' %}
+            {% if user.rol == 'tecnico' %}
+                <script>window.location.href = "{% url 'administracion' %}";</script>
+            {% endif %}
+            <script>window.location.href = "{% url 'inicio' user.id %}";</script>
+        {% endif %}
+        <h1 id="Titulo">Gestion de Usuarios</h1>
+        {% if messages %}
+        <div class="users-messages">
+            {% for message in messages %}
+            <div class="users-message users-message-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="Container">
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Usuario</th>
+                    <th scope="col">Correo</th>
+                    <th scope="col">Rut</th>
+                    <th scope="col">Activo</th>
+                    <th scope="col">Rol</th>
+                    <th scope="col">Ultima Conexión</th>
+                    <th scope="col"></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for usuario in Usuarios %}
+                    <tr>
+                        <th scope="row">{{ usuario.id }}</th>
+                        <td>
+                            {{ usuario.usuario }}
+                            {% if usuario.id == user.id %}
+                            <span class="users-self-note">Tu cuenta</span>
+                            {% endif %}
+                            {% if usuario.id != user.id %}
+                            <form id="user-change-{{ usuario.id }}" method="post" action="{% url 'gestion_usuarios' %}">
+                                {% csrf_token %}
+                                <input type="hidden" value="{{ usuario.id }}" name="Userid">
+                            </form>
+                            {% endif %}
+                        </td>
+                        <td>{{ usuario.correo }}</td>
+                        <td>{{ usuario.rut }}</td>
+                        <td>
+                            {% if usuario.id == user.id %}
+                            <span class="users-role-value">{% if usuario.activo %}Sí{% else %}No{% endif %}</span>
+                            {% else %}
+                            <label class="visually-hidden" for="activo-{{ usuario.id }}">Cuenta activa</label><input id="activo-{{ usuario.id }}" type="checkbox" name="activo" form="user-change-{{ usuario.id }}" {% if usuario.activo %}checked{% endif %}/>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usuario.id == user.id %}
+                            <span class="users-role-value">{{ usuario.get_rol_display }}</span>
+                            {% else %}
+                            <label class="visually-hidden" for="rol-{{ usuario.id }}">Rol</label>
+                            <select id="rol-{{ usuario.id }}" name="rol" form="user-change-{{ usuario.id }}">
+                                {% for valor, etiqueta in usuario.ROLES %}
+                                <option value="{{ valor }}" {% if usuario.rol == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                                {% endfor %}
+                            </select>
+                            {% endif %}
+                        </td>
+                        <td>{{ usuario.last_login }}</td>
+                        <td>
+                            {% if usuario.id != user.id %}
+                            <button id="btnModif" type="submit" form="user-change-{{ usuario.id }}"><i class="fa-solid fa-pen"></i></button>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usuario.id != user.id %}
+                            <form method="post" action="{% url 'eliminar_usuario' usuario.id %}" onsubmit="return confirm('¿Estas seguro de borrar este usuario?')">
+                                {% csrf_token %}
+                                <button type="submit"><i class="fa-regular fa-trash-can"></i></button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="9" class="users-empty">No hay usuarios para mostrar.</td></tr>
+                {% endfor %}
+                </tbody>
+              </table>
+        </div>
+    {% endif %}
+{% endblock %}

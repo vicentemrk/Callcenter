@@ -1,0 +1,17 @@
+{% extends "componentes/header.html" %}
+{% load static %}
+
+{% block title %}Cerrar Sesión{% endblock %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="mainLogin">
+    <h2>Has cerrado sesión exitosamente</h2>
+    <p>¿Deseas <a href="{% url 'Login' %}">iniciar sesión</a> nuevamente?</p>
+    <p>O puedes <a href="{% url 'index' %}">volver al inicio</a></p>
+</div>
+
+{% endblock %}

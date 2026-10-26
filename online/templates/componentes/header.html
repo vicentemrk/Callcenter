@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'estiloHeader.css' %}?v=20261011-footer">
+    <title>{% block title %}Call Center Gamer{% endblock %}</title>
+    {% block links %}{% endblock %}
+</head>
+<body>
+    <nav class="MainNav">
+        <div id="NavbarIzq">
+            <a href="{% if user.is_authenticated %}{% if user.rol == 'administrador' or user.rol == 'tecnico' %}{% url 'administracion' %}{% else %}{% url 'inicio' user.id %}{% endif %}{% else %}{% url 'index' %}{% endif %}" id="logo">
+                <i class="fas fa-gamepad"></i> CallCenterGamer
+            </a>
+            <ul>
+                {% if user.is_authenticated %}
+                    {% if user.rol == 'administrador' or user.rol == 'tecnico' %}
+                        <li><a href="{% url 'administracion' %}">Administración</a></li>
+                        {% if user.rol == 'administrador' %}<li><a href="{% url 'analytics_ia' %}">Analytics IA</a></li>{% endif %}
+                        {% if user.rol == 'administrador' %}<li><a href="{% url 'gestion_usuarios' %}">Gestión de Usuarios</a></li>{% endif %}
+                    {% else %}
+                        <li><a href="{% url 'inicio' user.id %}">Inicio</a></li>
+                    {% endif %}
+                {% else %}
+                    <li><a href="{% url 'index' %}">Inicio</a></li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div id="NavbarDer">
+            <ul>
+                {% if user.is_authenticated %}
+                    <li>
+                        <span class="usuario-sesion">
+                            <i class="fas fa-user"></i> {{ user.usuario }}
+                            {% if user.rol == 'administrador' %}
+                                <span class="rol-badge rol-admin">Admin</span>
+                            {% elif user.rol == 'tecnico' %}
+                                <span class="rol-badge rol-tecnico">Técnico</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li>
+                        <form method="post" action="{% url 'Logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'Login' %}"><i class="fas fa-sign-in-alt"></i> Ingresar</a></li>
+                    <li><a href="{% url 'Register' %}"><i class="fas fa-user-plus"></i> Registrarse</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <section class="footer-section">
+                <h2>Contacto</h2>
+                <p>Instagram</p>
+                <p>Facebook</p>
+            </section>
+            <section class="footer-section">
+                <h2>Ubicación</h2>
+                <p>Av. Américo Vespucio 974, Maipú, Región Metropolitana</p>
+            </section>
+            <p class="footer-copyright">© 2026-2030 Call Center Gamer. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    {% block js %}{% endblock %}
+
+</body>
+</html>

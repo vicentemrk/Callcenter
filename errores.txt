@@ -1,0 +1,727 @@
+====================================================================================================================================================================================
+1. Ruta incorrecta de la base de datos
+En settings.py, la configuracion original era:
+'NAME': os.environ.get('DB_NAME', 'CallCenterGamer')
+
+Como no existía la variable de entorno DB_NAME, 
+Django usaba CallCenterGamer como ruta relativa. SQLite interpretaba esa ruta como:
+C:\Users\sistema\Downloads\CallCenterGamer\CallCenterGamer
+Pero CallCenterGamer es una carpeta del proyecto, no un archivo de base de datos. 
+Por eso SQLite generaba:
+sqlite3.OperationalError: unable to open database file
+La base correcta era el archivo:
+C:\Users\sistema\Downloads\CallCenterGamer\db.sqlite3
+se corrigio usando:
+'NAME': os.environ.get('DB_NAME', str(BASE_DIR / 'db.sqlite3'))
+====================================================================================================================================================================================
+2. Migración faltante
+Después de corregir la ruta, Django pudo acceder a SQLite y encontró otro problema:
+
+La migración 0003_alter_usuario_rut.py decía que dependía de una migración 0002, pero ese archivo no estaba en el proyecto. Solo existían inicialmente:
+Esto normalmente ocurre cuando:
+
+Se eliminó accidentalmente una migración.
+Se copiaron archivos del proyecto sin copiar toda la carpeta migrations.
+Se generaron migraciones en otra versión o rama y quedó una dependencia inválida.
+Se renombró o regeneró una migración sin actualizar sus dependencias.
+Se corrigió haciendo que 0003 dependiera directamente de 0001_initial.py y generando la migración faltante de los cambios actuales de los modelos como 0004_alter_respuesta_respuesta_alter_usuario_apellido_and_more.py.
+====================================================================================================================================================================================
+3. Panel administrativo y enlaces internos
+Se reemplazó indexAdmin.html (antes era una copia de la landing y tenía un endblock huérfano que rompía la vista) por un panel administrativo real con métricas, alertas de IA, tabla de preguntas, 
+buscador y acciones para ver, editar y eliminar. 
+La vista IndexAdmin ahora usa select_related y annotate, 
+y calcula las métricas básicas aunque OpenAI no esté configurado.
+
+También se eliminaron las rutas internas literales de plantillas y vistas:
+los enlaces usan el tag url y las redirecciones usan nombres de ruta. 
+Se verificó que no existan usos de safe, mark_safe, format_html ni autoescape off, 
+y se agregó una prueba que confirma que los símbolos de etiquetas HTML y los enlaces escritos por usuarios se muestran escapados. 
+Las pruebas de redirección se actualizaron con reverse(), quedando la suite en verde.
+====================================================================================================================================================================================
+4. Bucle de redirección en la página principal
+La plantilla index.html debía enviar a cada usuario al lugar correspondiente:
+los administradores y técnicos a /Administracion/ y los usuarios normales a
+/Inicio/<id>/.
+
+El problema era que la segunda redirección estaba fuera del bloque if. Por lo
+tanto, un administrador o técnico podía recibir dos instrucciones de navegación:
+primero ir a administración y después ir al inicio normal. Esto podía provocar
+redirecciones incorrectas o un bucle.
+
+Se corrigió usando if y else dentro del mismo bloque. Así, solo se ejecuta una
+redirección:
+los administradores y técnicos van a la ruta administracion, y los usuarios
+normales van a la ruta inicio. También se utilizaron etiquetas url de Django
+en lugar de escribir las direcciones manualmente.
+====================================================================================================================================================================================
+5. Asistente de inicio.html desconectado de la vista Inicio
+inicio.html tenía un formulario para que el usuario escribiera una consulta en
+el campo buscar_ayuda, pero la vista Inicio no leía ese dato ni lo procesaba.
+El asistente se mostraba en pantalla, pero no podía devolver una respuesta.
+
+Se conectó el formulario con Inicio mediante request.GET. La vista recibe la
+consulta y la envía a dos componentes:
+AsistenteIA genera una respuesta automática y RecomendadorIA busca preguntas
+similares ya respondidas.
+
+Después, Inicio reúne ambos resultados en sugerencias_ia y los envía nuevamente
+a inicio.html. De esta forma, la consulta viaja desde el formulario hasta la
+vista, se procesa y vuelve a la página para mostrar la respuesta y las
+recomendaciones.
+====================================================================================================================================================================================
+6. Errores internos de OpenAI visibles para el usuario
+Cuando OpenAI producía un error, ia_utils.py devolvía el detalle técnico
+completo usando el contenido de la excepción. Esto podía mostrar información
+interna, como la falta de configuración de OPENAI_API_KEY, directamente en la
+página.
+
+Se reemplazó ese comportamiento por un mensaje general y amigable:
+"Lo siento, el asistente no está disponible en este momento. Inténtalo
+nuevamente más tarde."
+
+Así, el usuario recibe una explicación comprensible y no ve detalles internos
+del sistema. También se agregó una prueba que comprueba que el contenido técnico
+del error no se incluya en la respuesta.
+====================================================================================================================================================================================
+7. Versiones de Django y dependencias sin fijar (Prioridad alta N6)
+El archivo requeriments.txt declaraba las dependencias con rangos abiertos:
+mysqlclient>=2.1.1
+django>=4.1
+django-environ>=0.4.5
+openai>=1.0.0,<2.0.0
+
+Eso permitía que pip instalara versiones distintas en cada equipo. En este
+entorno se tenía Django 4.1, versión que ya no recibe soporte y que no está
+compatible oficialmente con Python 3.13.7. Además, la migración 0004 había sido
+generada con Django 6.1, lo que evidenciaba la deriva entre versiones.
+
+Se fijaron versiones exactas y compatibles con Python 3.13.7:
+mysqlclient==2.3.0
+Django==5.2.18
+django-environ==0.14.0
+openai==1.109.1
+
+Se eligió Django 5.2.18 porque es una versión LTS, soporta Python 3.10 a 3.13
+y mantiene compatibilidad con el código y las migraciones existentes. No se
+actualizó a Django 6.x para evitar exigir Python 3.12+ y asumir cambios de una
+versión no LTS. mysqlclient se mantiene fijado porque el proyecto lo declara
+para una eventual conexión MySQL, aunque la configuración actual use SQLite.
+
+También se mantuvo el nombre requeriments.txt, ya que renombrarlo corresponde
+a la prioridad baja #25, y Start Servidor Web.bat sigue apuntando a ese archivo.
+
+Validación realizada:
+- python -m pip install -r requeriments.txt: Django 5.2.18 instalado.
+- python -m pip check: No broken requirements found.
+- python manage.py check: System check identified no issues (0 silenced).
+- python manage.py makemigrations --check --dry-run: No changes detected.
+- python manage.py migrate --check: sin migraciones pendientes.
+- python manage.py test: 16 pruebas ejecutadas, todas correctas (OK).
+====================================================================================================================================================================================
+8. Llamadas de IA en bucles durante el renderizado (Prioridad alta N7)
+Las vistas del panel administrativo ejecutaban una llamada a OpenAI por cada
+pregunta que mostraban:
+- IndexAdmin: hasta 10 llamadas por carga.
+- AnalyticsIA: hasta 50 llamadas por carga.
+- GestionUsuarios: hasta 5 llamadas por cada usuario registrado.
+- ModificarPregunta: 2 llamadas por carga, aunque la plantilla solo mostraba el
+  formulario.
+Además, el análisis de usuarios de GestionUsuarios y las sugerencias de
+ModificarPregunta no se utilizaban en sus plantillas, por lo que eran código
+muerto que consumía API y tiempo de respuesta.
+
+Se agregó AsistenteIA.clasificar_preguntas() en online/ia_utils.py. El método
+recibe una lista de preguntas, elimina duplicados, limita el texto enviado y
+realiza una sola solicitud a OpenAI con todas las preguntas. Devuelve una
+categoría por pregunta en el mismo orden y usa "otros" como respaldo si la
+respuesta no es JSON válido o si la API falla. clasificar_pregunta() ahora
+delega en este método para mantener compatibilidad.
+
+Las vistas quedaron así:
+- IndexAdmin: una llamada para clasificar hasta 10 preguntas recientes.
+- AnalyticsIA: una llamada para clasificar hasta 50 preguntas del mes.
+- GestionUsuarios: cero llamadas; se eliminó el análisis de IA no utilizado.
+- ModificarPregunta: cero llamadas; se eliminaron la clasificación, la
+  generación de sugerencias y la recomendación, porque la plantilla no las
+  mostraba.
+- Inicio: mantiene una llamada solo cuando el usuario envía una consulta.
+
+Con esto se evita que una sola visita al panel genere decenas de llamadas.
+Guardar la categoría en la base de datos sigue pendiente para la prioridad
+alta N8.
+
+Validación realizada:
+- python manage.py check: System check identified no issues (0 silenced).
+- python manage.py makemigrations --check --dry-run: No changes detected.
+- python manage.py test: 23 pruebas ejecutadas, todas correctas (OK).
+  Se agregaron pruebas para verificar una sola llamada por lote en el panel y
+  en analytics, cero llamadas en gestión de usuarios y modificación, y el
+  respaldo "otros" cuando OpenAI falla.
+====================================================================================================================================================================================
+====================================================================================================================================================================================================
+9. Categoría calculada en memoria y no persistida (Prioridad alta N8)
+El modelo Preguntas no guardaba la categoría. IndexAdmin y AnalyticsIA
+clasificaban las preguntas con una llamada a OpenAI en cada carga de página,
+y el resultado se perdía al cerrar la vista, por lo que el mismo dato se
+recalculaba una y otra vez.
+
+Se agregó el campo categoria a Preguntas como CharField con choices, valor
+por defecto "otros" e índice en la base de datos. La lista de categorías se
+centralizó en online/constants.py y tanto el modelo como AsistenteIA la usan,
+evitando que la IA devuelva valores fuera de las opciones válidas.
+
+La migración 0005_preguntas_categoria agregó la columna y las preguntas
+existentes quedaron en "otros"; se reclasifican cuando se edita su texto.
+
+El comportamiento quedó así:
+- Inicio: al crear una pregunta se clasifica una vez y se guarda en la BD.
+- ModificarPregunta: reclasifica solo si el texto de la pregunta cambió; si
+  solo se modifica el título no se llama a OpenAI.
+- IndexAdmin: la sección de tendencias lee la categoría guardada; cero
+  llamadas a OpenAI por carga de página.
+- AnalyticsIA: calcula el conteo por categoría directamente en la base de
+  datos con values y Count; cero llamadas a OpenAI por carga de página.
+- RecomendadorIA: ahora muestra la categoría guardada de cada pregunta.
+
+También se eliminó código y comentarios muertos que mencionaban IA:
+el bloque de error_ia en indexAdmin.html, el análisis de cambios de rol en
+GestionUsuarios (lista cambios y print) y los docstrings de BorrarPregunta y
+EliminarUsuario.
+
+Validación realizada:
+- python manage.py check: System check identified no issues (0 silenced).
+- python manage.py makemigrations --check --dry-run: No changes detected.
+- python manage.py migrate: online.0005_preguntas_categoria aplicada.
+- python manage.py migrate --check: sin migraciones pendientes.
+- python manage.py test: 27 pruebas ejecutadas, todas correctas (OK).
+  Se agregaron pruebas para la categoría guardada al crear, la
+  reclasificación al cambiar el texto, la conservación de la categoría si el
+  texto no cambia y el conteo por categoría desde la BD sin llamadas a IA.
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+10. Tiempo promedio de respuesta simulado (Prioridad alta N9)
+La tarjeta de AnalyticsIA mostraba un valor fijo "2.5 días" en el campo
+tiempo_promedio_respuesta, no calculado a partir de los datos reales.
+
+Se reemplazo por un cálculo real: para cada pregunta creada en los últimos
+30 días se obtiene la primera respuesta escrita por un administrador o
+técnico usando Min sobre respuesta__FechaHora con un filtro Q que excluye
+las respuestas del propio autor. Se descartan respuestas anteriores a la
+creación de la pregunta (datos inconsistentes) y se promedian los tiempos
+de espera en Python. Si no hay respuestas de staff en el periodo, se
+muestra "Sin datos". El helper _formatear_duracion formatea el promedio
+como días, horas o minutos con singular/plural.
+
+Se actualizó la tarjeta para mostrar "Tiempo Promedio de Primera Respuesta".
+
+Validación realizada:
+- python manage.py check: System check identified no issues (0 silenced).
+- python manage.py makemigrations --check --dry-run: No changes detected
+  (no hay cambios de modelo ni migración nueva).
+- python manage.py test: 34 pruebas ejecutadas, todas correctas (OK).
+  Se agregaron pruebas para el uso de la primera respuesta de staff,
+  el caso sin respuestas de staff, el descarte de respuestas anteriores
+  a la pregunta y el formateo de días, horas y minutos.
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+11. Autodesactivacion y autodegradacion del administrador
+
+Problema:
+
+La vista gestion_usuarios actualizaba cualquier usuario enviado en el POST sin
+
+restriccion alguna: un admin podia desactivar su propia cuenta o quitarse el
+
+rol admin, dejando el sistema sin administradores. Los checkboxes
+
+deshabilitados en HTML no se envian por el navegador, por lo que era
+
+imprescindible un control en el servidor.
+
+
+
+Solucion aplicada:
+
+- En administracion/views.py la vista GestionUsuarios rechaza cualquier POST
+
+  dirigido al propio admin conectado y devuelve un mensaje de error:
+
+  "No puedes modificar tus propios permisos ni desactivar tu cuenta."
+
+- En administracion/templates/GestionUsuarios.html la fila del usuario actual
+
+  se muestra de solo lectura (texto Si/No en lugar de checkboxes, sin
+
+  formulario de edicion ni botones de guardar/eliminar) con nota "Tu cuenta".
+
+  No se usaron checkboxes disabled porque el navegador no los envia y el
+
+  servidor los interpretaria como False.
+
+- Se agrego un bloque {% if messages %} para mostrar los mensajes de error y
+
+  exito (antes la plantilla no los renderizaba) y estilos relacionados en
+
+  administracion/static/gestion.css.
+
+- La autoeliminacion ya estaba bloqueada desde EliminarUsuario.
+
+
+
+Validacion realizada:
+
+- python manage.py check: System check identified no issues (0 silenced).
+
+- python manage.py makemigrations --check --dry-run: No changes detected.
+
+- python manage.py test: 39 pruebas ejecutadas, todas correctas (OK).
+
+  Pruebas nuevas: el admin no puede desactivarse a si mismo, no puede
+
+  quitarse el rol admin, no puede cambiar su rol tecnico, si puede editar
+
+  otros usuarios y su fila aparece de solo lectura en el HTML.
+
+
+PRIORIDAD: Rediseño de roles, auditoría y gestión de Preguntas
+----------------------------------------------------------------
+
+- Se reemplazaron los campos booleanos independientes admin y tecnico por
+  un único campo rol. Sus valores posibles son cliente, tecnico y
+  administrador.
+
+- Un único campo evita combinaciones ambiguas, como un usuario que sea
+  administrador y tecnico al mismo tiempo, o que no tenga ningún rol válido.
+  Las reglas de acceso ahora comparan directamente request.user.rol.
+
+- La migración 0008 convierte los usuarios existentes antes de eliminar los
+  campos antiguos:
+  admin=True pasa a administrador, admin=False y tecnico=True pasa a
+  tecnico, y el resto pasa a cliente.
+
+- Se mantuvieron propiedades de compatibilidad para código antiguo, pero las
+  consultas ORM y los formularios nuevos usan rol. El panel de usuarios
+  muestra un selector único.
+
+- Se agregó Auditoria para registrar acciones administrativas importantes,
+  como modificar o eliminar usuarios y Preguntas, cambiar estados y cambiar
+  prioridades. Si una Pregunta se elimina, su registro de auditoría se
+  conserva sin la relación a esa Pregunta.
+
+- El panel permite filtrar Preguntas por estado, prioridad y categoría.
+  También permite cerrar y reabrir Preguntas mediante solicitudes POST
+  protegidas por login.
+
+Validación del rediseño:
+
+- python manage.py check: correcto.
+- python manage.py makemigrations --check: no hay cambios pendientes.
+- python manage.py migrate --check: correcto.
+- python manage.py test: 39 pruebas ejecutadas, todas correctas (OK).
+
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+11. Normalizacion de templates
+
+Los templates hijos repetian estructuras HTML completas aunque heredaban de un template padre.
+Esto podia generar codigo duplicado y dificultar el mantenimiento de las paginas.
+Se establecio online/templates/componentes/header.html como template padre comun.
+Los hijos ahora utilizan solamente los bloques title, links, content y js.
+Los templates hijos dejaron de repetir DOCTYPE, html, head y body.
+
+Ejemplo sencillo:
+- El padre header.html contiene la estructura general de la pagina.
+- Un hijo como login.html solo agrega su titulo y su formulario dentro de
+  los bloques correspondientes.
+====================================================================================================================================================================================================
+=====================================================================================================================================================================================================
+12. Validacion del RUT en el servidor
+
+El formulario aceptaba cualquier texto con apariencia de RUT y la validacion
+dependia principalmente del navegador. Se creo un validador reutilizable para
+RUT chileno, que acepta puntos opcionales, comprueba el formato y calcula el
+digito verificador. El validador se conecto al modelo Usuario para que tambien
+se aplique fuera del formulario de registro.
+
+Ejemplo sencillo:
+- RUT valido: 12.345.678-5.
+- RUT invalido: 12.345.678-4, porque su digito verificador no corresponde.
+- Un texto como 12345678 tambien se rechaza porque no tiene formato completo.
+Ruts de pruebas: 
+• 17786044-1
+• 16887941-5
+• 12870631-3
+• 24156862-8
+• 15518258-k
+Pagina para crear: https://www.utilidadeschilenas.cl/generador-rut/
+====================================================================================================================================================================================================
+=====================================================================================================================================================================================================
+
+13. Limites de longitud del lado del servidor
+
+Algunos limites solo estaban definidos en el HTML, por lo que una solicitud
+manipulada podia enviar textos mas largos. Se establecio un maximo de 750
+caracteres para preguntas y respuestas en el modelo y sus formularios.
+Tambien se limito a 250 caracteres la consulta enviada al asistente de IA,
+tanto en el formulario como en el servidor. La contraseña mantiene un minimo
+de 8 caracteres y el usuario conserva su limite actual. Se genero y aplico la
+migracion correspondiente.
+
+Tabla de limites de longitud de los textos:
+Campo                   | Limite
+Nombre:                 |  30 caracteres
+Apellido:               |  30 caracteres
+RUT:                    |  12 caracteres
+Correo:                 |  70 caracteres
+Usuario en modelo:      |  50 caracteres
+Usuario en registro:    |  20 caracteres
+Título:                 |  60 caracteres 
+Pregunta:               |  750 caracteres 
+Respuesta:              |  750 caracteres 
+Consulta IA:            |  250 caracteres
+Contraseña:             |  mínimo 8 y maximo 63 caracteres
+====================================================================================================================================================================================================
+=====================================================================================================================================================================================================
+
+14. Aviso de privacidad para el asistente de IA
+
+Se agrego junto al asistente un aviso visible para informar que no deben
+ingresarse contraseñas, RUT, correos electronicos ni otros datos personales o
+confidenciales. Tambien se aclaro que las respuestas de la IA son orientativas
+y pueden contener errores.
+
+El aviso aparece debajo de la descripcion del asistente y no requiere pulsar
+botones ni realizar acciones adicionales. No bloquea el uso del asistente.
+
+Ejemplo sencillo:
+- Consulta permitida: "Mi juego funciona lento".
+- Consulta que no debe escribirse: "Mi RUT es 12.345.678-5 y mi contrasena es...".
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+15. Templates duplicados sin uso
+
+Se revisaron las referencias de los templates antes de eliminar archivos.
+`online/templates/componentes/home.html` no era utilizado por ninguna vista,
+URL ni otro template, por lo que se elimino.
+
+Tambien se elimino `online/templates/componentes/analytics_ia.html`, porque
+existia otra plantilla activa en `administracion/templates/analytics_ia.html`.
+Django utiliza esta ultima debido al orden de las aplicaciones configurado, y
+la vista de Analytics IA continua apuntando a la plantilla activa.
+
+No se eliminaron templates que tuvieran referencias o fueran necesarios para
+el funcionamiento actual.
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+16. Diseño responsivo
+
+Se ajustaron los estilos para que la aplicacion se adapte a computadores,
+tablets y celulares. La barra de navegacion, la pagina de inicio, el formulario
+de preguntas y el asistente de IA ahora reorganizan sus elementos en pantallas
+angostas, evitando desbordamientos horizontales.
+
+Ejemplo sencillo:
+- En computador, el formulario y el historial pueden verse lado a lado.
+- En celular, ambos bloques se muestran uno debajo del otro.
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+17. Estilos inline en los templates
+
+Se trasladaron los estilos escritos directamente dentro de los templates a
+archivos CSS. Esto deja el HTML dedicado a la estructura y permite mantener
+los estilos responsivos en un solo lugar, sin cambiar la funcionalidad.
+
+Ejemplo sencillo:
+- Antes: un boton tenia sus colores y margenes dentro de `style="..."`.
+- Ahora: el boton usa una clase y sus estilos viven en el CSS correspondiente.
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+18. Estados y prioridades de los tickets
+
+En el proyecto, cada pregunta funciona como un ticket de atencion. Se
+agregaron un estado y una prioridad para ordenar el trabajo de los tecnicos y
+conocer la situacion de cada solicitud.
+
+Estados propuestos:
+- Pendiente: la pregunta fue creada, pero aun no ha sido atendida.
+- En proceso: un tecnico comenzo a trabajar en la solicitud.
+- Resuelto: ya se entrego una solucion al usuario.
+- Cerrado: la atencion termino oficialmente.
+
+Prioridades propuestas:
+- Baja: problema menor o consulta general.
+- Media: problema normal.
+- Alta: dificultad importante para el usuario.
+- Urgente: el servicio esta completamente bloqueado.
+
+Flujo propuesto:
+
+El usuario crea una pregunta
+        |
+        v
+Estado: Pendiente
+        |
+        v
+Un tecnico la toma
+        |
+        v
+Estado: En proceso
+        |
+        v
+El tecnico responde
+        |
+        v
+Estado: Resuelto
+        |
+        v
+Se finaliza la atencion
+        |
+        v
+Estado: Cerrado
+
+Implementacion realizada:
+- Se agregaron los campos estado y prioridad al modelo Preguntas.
+- Los valores iniciales definidos son En proceso y Baja.
+- Administradores y tecnicos pueden modificar estos valores desde el panel.
+- Una respuesta enviada por un administrador o tecnico marca el ticket como
+  Resuelto automaticamente.
+- El panel muestra el estado y la prioridad de cada ticket.
+- La migracion fue creada y aplicada correctamente.
+
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+19. Logging del servidor
+
+El logging es el sistema que crea, clasifica y dirige los logs. Un log es cada
+registro individual de lo que ocurre en el servidor. El logging reemplaza los
+`print` usados para
+informar errores por registros con niveles como INFO, WARNING y ERROR. Servira
+para investigar fallos de la IA y otros problemas del servidor sin mostrar
+detalles tecnicos al usuario.
+
+Funcionamiento propuesto:
+- INFO: registra acciones normales, como el inicio de una sesion.
+- WARNING: registra situaciones inusuales que no detienen la aplicacion.
+- ERROR: registra operaciones que fallaron, como una consulta a la IA.
+- CRITICAL: registra problemas graves que requieren atencion inmediata.
+
+El logging funcionara como una bitacora del servidor. Permitira buscar cuando
+ocurrio un problema, que operacion fallo y en que parte del sistema sucedio.
+Implementacion realizada:
+- Se reemplazaron los `print` de recomendaciones IA y Analytics IA.
+- Los errores se registran con `logger.exception`, conservando la traza tecnica.
+- Los registros se muestran en la consola durante el desarrollo.
+- Tambien se guardan en `logs/callcentergamer.log`.
+- Se configuraron loggers separados para `online` y `administracion`.
+- No se registran contrasenas ni datos confidenciales del usuario.
+- La configuracion principal esta reunida en `CallCenterGamer/settings.py`.
+- La ruta del archivo se define en `LOG_FILE`, para encontrarla facilmente.
+
+Ejemplo sencillo:
+- Si falla una consulta de IA, el usuario recibe el mensaje normal de la
+  aplicacion y el servidor guarda un ERROR con la causa tecnica.
+
+Como agregar un log en el futuro:
+1. Importar `logging` en el archivo.
+2. Crear `logger = logging.getLogger(__name__)`.
+3. Usar `logger.info(...)`, `logger.warning(...)` o `logger.exception(...)`
+   segun el tipo de mensaje.
+
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+20. Limpieza de imports y variables sin uso
+
+Se revisaron los archivos Python del proyecto para eliminar elementos que no
+participaban en la ejecucion. La limpieza se hizo comparando cada import con
+su uso real antes de quitarlo.
+
+Limpieza realizada:
+- En `online/recomendaciones_ia.py` se elimino el import `Respuesta`.
+- La clase solo utiliza directamente el modelo `Preguntas`.
+- Las respuestas se obtienen mediante la relacion `pregunta.respuesta_set`,
+  por lo que importar `Respuesta` en ese archivo era innecesario.
+
+No se eliminaron imports de `models.py`, formularios, vistas, migraciones,
+tests ni archivos de inicio porque si son utilizados por el modelo, Django,
+las pruebas o el arranque del proyecto.
+
+Tampoco se quitaron variables que parecen generales pero participan en la
+logica, como `Count`, `Min`, `Q`, `timezone`, `timedelta` o `LOG_FILE`.
+Conservar solo lo que realmente se usa evita errores y hace el codigo mas
+facil de mantener.
+
+Ejemplo sencillo:
+- Antes: `from online.models import Preguntas, Respuesta`.
+- Ahora: `from online.models import Preguntas`.
+- Motivo: el archivo consulta preguntas y accede a sus respuestas mediante
+  la relacion del modelo, sin llamar directamente a `Respuesta`.
+
+Revision final:
+- Se revisaron todos los archivos Python del proyecto, no solo las vistas.
+- No se encontraron otros imports sin referencias de uso.
+- Las variables principales tambien participan en la logica, las pruebas o la
+  configuracion de Django, por lo que no se eliminaron.
+- Los imports de migraciones, tests y archivos de inicio se conservaron porque
+  son necesarios para reconstruir la base de datos, ejecutar pruebas o iniciar
+  el proyecto.
+
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+21. Optimizacion de consultas
+
+Se revisaron las consultas de las vistas y utilidades para entender que
+informacion obtiene cada una y evitar trabajo repetido.
+
+Consultas principales y motivo:
+- `Usuario.objects.get(...)`: obtiene el usuario exacto de la sesion o el
+  usuario que un administrador desea modificar. Se usa `get` porque debe
+  existir un solo registro.
+- `Preguntas.objects.filter(...)`: obtiene las preguntas de un usuario, una
+  pregunta concreta o las preguntas de un periodo. Se usa `filter` porque
+  puede devolver varios registros.
+- `select_related('Usuario')`: carga cada usuario junto con su pregunta en la
+  misma consulta. Se usa en el panel para no consultar el usuario nuevamente
+  por cada fila.
+- `annotate(Count('respuesta'))`: cuenta las respuestas de cada pregunta para
+  mostrar si ya fue respondida y construir las metricas.
+- `aggregate(Count(...))`: calcula el total, las preguntas sin respuesta y las
+  creadas durante la semana en una agregacion de la base de datos, evitando
+  recalcular el mismo listado varias veces.
+- `Min('respuesta__FechaHora')` con `Q`: encuentra la primera respuesta de
+  administradores o tecnicos para medir el tiempo real de atencion.
+- `Usuario.objects.count()`: cuenta los usuarios para la tarjeta de metricas,
+  sin cargar todos sus datos en memoria.
+- `prefetch_related` en recomendaciones IA: carga las respuestas de las
+  preguntas resueltas en conjunto, evitando una consulta por cada pregunta
+  dentro del ciclo.
+- `.exists()` en formularios: comprueba si un correo ya existe sin cargar el
+  usuario completo.
+
+La optimizacion no elimina consultas necesarias; evita consultas repetidas y
+mantiene el mismo resultado visible para el usuario.
+
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+22. Normalizacion de nombres de variables
+
+Se normalizaron variables locales siguiendo la convencion `snake_case`:
+- `User` paso a `usuario`.
+- `ListaPreguntas` paso a `preguntas`.
+- `Usuarios` paso a `usuarios`.
+- `Pregunta` paso a `pregunta`.
+- `MostrarRespuestas` paso a `respuestas`.
+
+No se cambiaron los nombres de modelos ni campos como `Preguntas`, `Pregunta`,
+`Usuario` o `Respuesta`, porque forman parte de formularios, templates,
+migraciones y consultas de Django. Cambiarlos requeriria una migracion y
+ajustes en varias capas sin aportar una mejora proporcional.
+
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+23. Correccion de titulos y textos
+
+Se unifico el lenguaje visible para que la aplicacion hable principalmente de
+`Preguntas`, que es el nombre funcional elegido para el sistema.
+
+Cambios realizados:
+- `Insertar pregunta` paso a `Crear pregunta`.
+- `Analytics con IA` paso a `Analisis de preguntas con IA`.
+- Se corrigieron textos como `Preguntas este Mes` y `Preguntas sin Respuesta`.
+- El titulo de modificar ahora indica claramente `Modificar pregunta`.
+
+24. Eliminacion de comentarios duplicados
+
+Se elimino la repeticion de `CallCenterGamer URL Configuration` en `urls.py`.
+El encabezado se conserva una sola vez porque identifica el archivo.
+
+No se eliminaron comentarios que explican decisiones tecnicas, validaciones o
+logica que podria no ser evidente para otra persona que mantenga el proyecto.
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================
+
+Se cambió el sistema de roles
+
+admin = True o False
+tecnico = True o False
+Eso permitía combinaciones confusas, por ejemplo:
+
+admin=True, tecnico=True
+
+Ahora se utiliza un único campo:
+
+rol = "cliente"
+rol = "tecnico"
+rol = "administrador"
+
+Así, cada usuario tiene un solo rol principal.
+
+Ejemplos:
+
+Cliente: puede crear Preguntas y consultar sus respuestas.
+Técnico: puede revisar y responder Preguntas.
+Administrador: puede gestionar usuarios y realizar acciones administrativas.
+
+Se migraron los usuarios antiguos
+La migración convierte los usuarios que ya existían:
+
+admin=True → rol="administrador"
+admin=False y tecnico=True → rol="tecnico"
+Ambos valores falsos → rol="cliente"
+Después de hacer la conversión, se eliminaron los campos antiguos admin y tecnico de la base de datos.
+
+Se actualizó la gestión de usuarios
+En el panel administrativo ya no se muestran dos casillas separadas para “Administrador” y “Técnico”.
+
+Ahora aparece un selector de rol:
+  Cliente
+  Técnico
+  Administrador
+
+También se mantiene la regla de que un administrador:
+
+No puede cambiar sus propios permisos.
+No puede desactivar su propia cuenta.
+No puede eliminarse a sí mismo.
+
+Se creó el modelo Auditoria para registrar acciones administrativas importantes.
+
+Por ejemplo:
+
+Modificar un usuario.
+Eliminar un usuario.
+Modificar una Pregunta.
+Eliminar una Pregunta.
+Cambiar el estado.
+Cambiar la prioridad.
+
+Se agregaron filtros para las Preguntas
+El panel administrativo permite filtrar Preguntas, por ejemplo:
+
+Estado: Pendiente
+Prioridad: Urgente
+Categoría: Hardware
+
+Estado.
+Prioridad.
+Categoría.
+Por ejemplo, se pueden visualizar solamente las Preguntas:
+
+
+6. Se agregó cierre y reapertura
+Ahora una Pregunta puede:
+
+Cerrarse cuando el problema está finalizado.
+Reabrirse si el usuario todavía necesita ayuda.
+Estas acciones están protegidas y solamente pueden realizarse mediante solicitudes autorizadas.
+====================================================================================================================================================================================================
+====================================================================================================================================================================================================

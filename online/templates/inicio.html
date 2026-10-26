@@ -1,0 +1,115 @@
+{% extends "componentes/header.html" %}
+{% load static %}
+{% block links %}
+<link rel="stylesheet" href="{% static 'inicio.css' %}">
+{% endblock %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+    {% if user.id == id and user.rol == 'cliente' %}
+    <div class="MainTodo">
+        <div class="MainPreguntar">
+            <div class="InsPreguntas">
+                <form method="post">
+                    {{form}}
+                    {% csrf_token %}
+                    <input type="submit" value="Crear pregunta">
+                </form>
+            </div>
+
+            <div class="asistente-ia">
+                <h3 class="asistente-ia-titulo">
+                    <i class="fas fa-robot"></i> Asistente Virtual IA
+                </h3>
+                <form method="get" action="" class="asistente-ia-form">
+                    <div class="asistente-ia-campos">
+                        <input type="text" name="buscar_ayuda" maxlength="250" placeholder="¿En qué puedo ayudarte? Ej: problema con internet, juego lento..."
+                               value="{{ request.GET.buscar_ayuda|default:'' }}"
+                               class="asistente-ia-input">
+                        <button type="submit" class="asistente-ia-boton">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                </form>
+                <p class="asistente-ia-descripcion">
+                    Nuestra IA puede ayudarte con problemas de hardware, software, conexión y más.
+                </p>
+                <div class="ia-privacidad-aviso" role="note">
+                    <strong><i class="fas fa-info-circle"></i> Uso responsable del asistente</strong>
+                    <p>
+                        No ingreses contraseñas, RUT, correos electrónicos ni otros
+                        datos personales o confidenciales. Las respuestas de la IA
+                        son orientativas y pueden contener errores.
+                    </p>
+                </div>
+            </div>
+
+            {% if sugerencias_ia %}
+            <div class="resultados-ia">
+                <h4 class="resultados-ia-titulo">
+                    <i class="fas fa-lightbulb"></i> Sugerencias para: "{{ sugerencias_ia.consulta_original }}"
+                </h4>
+                <div class="respuesta-ia">
+                    <div class="respuesta-ia-titulo">
+                        <i class="fas fa-robot"></i>
+                        <strong>Respuesta Automática:</strong>
+                    </div>
+                    <div class="respuesta-ia-texto">
+                        {{ sugerencias_ia.respuesta_automatica }}
+                    </div>
+                </div>
+                {% if sugerencias_ia.recomendaciones %}
+                <div class="recomendaciones-ia">
+                    <div class="recomendaciones-ia-titulo">
+                        <i class="fas fa-star"></i>
+                        <strong>Preguntas Similares Resueltas:</strong>
+                    </div>
+                    {% for rec in sugerencias_ia.recomendaciones %}
+                    <div class="recomendacion">
+                        <div class="recomendacion-cabecera">
+                            <strong>{{ rec.pregunta_similar }}</strong>
+                            <span class="similitud">Similitud: {{ rec.similitud }}</span>
+                        </div>
+                        <p class="recomendacion-respuesta">{{ rec.respuesta }}</p>
+                        {% if rec.categoria %}
+                        <div class="recomendacion-categoria"><span>{{ rec.categoria }}</span></div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="sin-recomendaciones">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No se encontraron preguntas similares en nuestra base de datos.</p>
+                </div>
+                {% endif %}
+                <div class="crear-pregunta-ia">
+                    <a href="?buscar_ayuda={{ sugerencias_ia.consulta_original|urlencode }}#formulario-pregunta"
+                       class="crear-pregunta-ia-boton">
+                        <i class="fas fa-question-circle"></i> Crear pregunta sobre este tema
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="MainPreguntas">
+            <div id="Titulo"><h2>Historial de tus preguntas</h2></div>
+            {% for pregunta in Preguntas %}
+            <div class="Preguntas">
+                <a href="{% url 'respuestas' user.id pregunta.idPregunta %}">
+                    <h1>Titulo: {{pregunta.Titulo}}</h1>
+                    <h4>{{pregunta.Fecha_creacion}}</h4>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    {% if user.rol == 'administrador' or user.rol == 'tecnico' %}
+    <script>window.location.href = "{% url 'administracion' %}";</script>
+    {% endif %}
+    <script>window.location.href = "{% url 'inicio' user.id %}";</script>
+    {% endif %}
+{% endblock %}

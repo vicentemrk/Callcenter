@@ -1,0 +1,21 @@
+Se decidio utilizar la versión 5.2.18 de django ya que presenta la mejor compatibilidad con Python 3.10-3.13 además de contar con soporte extendido hasta 2028.
+se descarto la versión 6.1.2 (ultima versión de Django) ya que es inestable e incompatible con ciertas versiones de Python además de no tener soporte a largo plazo.
+También se descarto la versión 4.1 ya que esta fuera de soporte y no es compatible con oficialmente con Python 3.13
+
+Se decidio eliminar el codigo muerto de IA en GestionUsuarios y ModificarPregunta, ya que sus plantillas no mostraban los resultados y esas llamadas a OpenAI se ejecutaban en cada carga sin aportar informacion visible. Tambien se decidio centralizar la clasificacion de los listados en una sola llamada por lote con AsistenteIA.clasificar_preguntas, en lugar de llamar a la IA una vez por pregunta.
+
+Se decidio guardar la categoria en el modelo Preguntas en lugar de recalcularla en cada visita: la clasificacion se ejecuta al crear la pregunta (Inicio) y al modificar su texto (ModificarPregunta), y los paneles administrativos solo leen el valor almacenado. Las preguntas existentes quedaron en "otros" y se reclasifican cuando se editan, para no depender de llamadas a OpenAI durante las migraciones.
+
+Se decidio que el tiempo promedio de respuesta mida la primera respuesta escrita por un administrador o tecnico, para preguntas creadas en los ultimos 30 dias, ya que es el tiempo real de atencion del call center. Se descarto promediar todas las respuestas porque los seguimientos inflarian el resultado, y se calcula en Python tras pedir a la base el minimo con Min y Q para mantener compatibilidad entre SQLite y MySQL. Si no hay respuestas de staff en el periodo, se muestra "Sin datos".
+Novedades:
+
+- Gestion de usuarios: se bloqueo en el servidor cualquier modificacion de
+  roles o estado sobre la propia cuenta del administrador conectado en
+  GestionUsuarios. Para cambiarse los permisos a si mismo, otro administrador
+  debe hacerlo. La regla cubre autodesactivacion y autodegradacion ante POSTs
+  manipulados, y va mas alla de la UI: la fila del propio admin se muestra
+  de solo lectura en la plantilla, pero la proteccion real vive en la vista.
+  La autoeliminacion seguia bloqueada en EliminarUsuario. Tambien se agrego
+  a la plantilla un bloque de mensajes porque los messages que la vista ya
+  generaba nunca se mostraban.
+

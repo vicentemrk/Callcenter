@@ -1,0 +1,244 @@
+{% extends "componentes/header.html" %}
+{% load static %}
+
+{% block title %}Panel de Administración{% endblock %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'index.css' %}?v=20261023-panel">
+{% endblock %}
+
+{% block content %}
+<section class="admin-wrap">
+    <div class="admin-heading">
+        <h1 id="Titulo">Panel de Administración</h1>
+        <p class="admin-subtitle">
+            {% if user.rol == 'administrador' %}
+                Control total de preguntas, usuarios y análisis del call center.
+            {% else %}
+                Revisa, responde y da seguimiento a las preguntas del call center.
+            {% endif %}
+        </p>
+    </div>
+    <form method="get" class="admin-filters">
+        <label>Estado
+            <select name="estado">
+                <option value="">Todos</option>
+                {% for valor, etiqueta in estados %}
+                <option value="{{ valor }}" {% if filtros.estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Prioridad
+            <select name="prioridad">
+                <option value="">Todas</option>
+                {% for valor, etiqueta in prioridades %}
+                <option value="{{ valor }}" {% if filtros.prioridad == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Categoría
+            <select name="categoria">
+                <option value="">Todas</option>
+                {% for valor, etiqueta in categorias %}
+                <option value="{{ valor }}" {% if filtros.categoria == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="admin-btn">Filtrar</button>
+        <a href="{% url 'administracion' %}" class="admin-btn admin-btn-outline">Limpiar</a>
+    </form>
+
+    {% if messages %}
+    <div class="admin-messages">
+        {% for message in messages %}
+        <div class="admin-alert admin-alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="admin-stats">
+        <article class="admin-stat">
+            <span class="admin-stat-label">Preguntas totales</span>
+            <strong class="admin-stat-value">{{ estadisticas_ia.total_preguntas|default:"0" }}</strong>
+            <span class="admin-stat-note">{{ estadisticas_ia.tendencia_semanal|default:"0" }} esta semana</span>
+        </article>
+        <article class="admin-stat">
+            <span class="admin-stat-label">Sin responder</span>
+            <strong class="admin-stat-value">{{ estadisticas_ia.preguntas_sin_respuesta|default:"0" }}</strong>
+            <span class="admin-stat-note">Requieren atención</span>
+        </article>
+        <article class="admin-stat">
+            <span class="admin-stat-label">Preguntas resueltas</span>
+            <strong class="admin-stat-value">{{ estadisticas_ia.porcentaje_resueltas|default:0|floatformat:1 }}%</strong>
+            <span class="admin-stat-note">Del total registrado</span>
+        </article>
+        <article class="admin-stat">
+            <span class="admin-stat-label">Usuarios registrados</span>
+            <strong class="admin-stat-value">{{ total_usuarios|default:"0" }}</strong>
+            <span class="admin-stat-note">En la plataforma</span>
+        </article>
+    </div>
+
+    {% for alerta in alertas_ia %}
+    <div class="admin-alert admin-alert-{{ alerta.tipo }}">
+        <i class="fas fa-circle-info"></i>
+        {{ alerta.mensaje }}
+    </div>
+    {% endfor %}
+
+    {% if user.rol == 'administrador' %}
+    <div class="admin-actions">
+        <a class="admin-btn" href="{% url 'gestion_usuarios' %}">
+            <i class="fas fa-users"></i> Gestionar usuarios
+        </a>
+        <a class="admin-btn admin-btn-outline" href="{% url 'analytics_ia' %}">
+            <i class="fas fa-chart-line"></i> Analytics IA
+        </a>
+    </div>
+    {% endif %}
+
+    <section class="admin-panel">
+        <div class="admin-panel-head">
+            <div>
+                <h2>Preguntas registradas</h2>
+                <p class="admin-panel-subtitle">Consulta, responde y administra las solicitudes.</p>
+            </div>
+            <label class="admin-search" for="admin-search">
+                <i class="fas fa-search"></i>
+                <input id="admin-search" type="search" placeholder="Buscar por título o usuario" autocomplete="off">
+            </label>
+        </div>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table" id="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Pregunta</th>
+                        <th>Usuario</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pregunta in Preguntas %}
+                    <tr data-search="{{ pregunta.Titulo|lower }} {{ pregunta.Usuario.usuario|lower }}">
+                        <td class="admin-id">{{ pregunta.idPregunta }}</td>
+                        <td>
+                            <span class="admin-question-title">{{ pregunta.Titulo }}</span>
+                            <span class="admin-question-preview">{{ pregunta.Pregunta|truncatechars:90 }}</span>
+                        </td>
+                        <td>{{ pregunta.Usuario.usuario }}</td>
+                        <td>{{ pregunta.Fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <span class="admin-badge admin-badge-{{ pregunta.estado }}">
+                                {{ pregunta.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="admin-badge admin-badge-{{ pregunta.prioridad }}">
+                                {{ pregunta.get_prioridad_display }}
+                            </span>
+                        </td>
+                        <td class="admin-actions-cell">
+                            <a class="admin-icon-btn" href="{% url 'respuestas' pregunta.Usuario.id pregunta.idPregunta %}" title="Ver conversación" aria-label="Ver conversación">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
+                            {% if user.rol == 'administrador' or user.rol == 'tecnico' %}
+                            <a class="admin-icon-btn" href="{% url 'modificar_pregunta' pregunta.idPregunta %}" title="Editar pregunta" aria-label="Editar pregunta">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            {% endif %}
+                            {% if pregunta.estado == 'cerrado' %}
+                            <form method="post" action="{% url 'reabrir_pregunta' pregunta.idPregunta %}" class="admin-inline-form">
+                                {% csrf_token %}
+                                <button class="admin-icon-btn" type="submit" title="Reabrir pregunta" aria-label="Reabrir pregunta">
+                                    <i class="fa-solid fa-lock-open"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'cerrar_pregunta' pregunta.idPregunta %}" class="admin-inline-form">
+                                {% csrf_token %}
+                                <button class="admin-icon-btn" type="submit" title="Cerrar pregunta" aria-label="Cerrar pregunta">
+                                    <i class="fa-solid fa-lock"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% if user.rol == 'administrador' %}
+                            <form method="post" action="{% url 'borrar_pregunta' pregunta.Usuario.id pregunta.idPregunta %}" class="admin-inline-form" onsubmit="return confirm('¿Estás seguro de eliminar esta pregunta?');">
+                                {% csrf_token %}
+                                <button class="admin-icon-btn admin-icon-danger" type="submit" title="Eliminar pregunta" aria-label="Eliminar pregunta">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="admin-empty">
+                            <i class="fas fa-inbox"></i>
+                            <span>No hay preguntas registradas todavía.</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if Preguntas %}
+                    <tr id="admin-no-results" hidden>
+                        <td colspan="7" class="admin-empty">No se encontraron coincidencias.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if tendencias_ia %}
+    <section class="admin-panel">
+        <div class="admin-panel-head">
+            <div>
+                <h2>Tendencias IA</h2>
+                <p class="admin-panel-subtitle">Clasificación automática de las preguntas de los últimos 7 días.</p>
+            </div>
+        </div>
+        <div class="admin-trends">
+            {% for tendencia in tendencias_ia %}
+            <article class="admin-trend">
+                <span class="admin-trend-title">{{ tendencia.titulo }}</span>
+                <span class="admin-trend-user"><i class="fas fa-user"></i> {{ tendencia.usuario }}</span>
+                <span class="admin-tag">{{ tendencia.categoria }}</span>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block js %}
+<script>
+    const adminSearch = document.getElementById('admin-search');
+    const adminRows = document.querySelectorAll('#admin-table tbody tr[data-search]');
+    const adminNoResults = document.getElementById('admin-no-results');
+
+    if (adminSearch) {
+        adminSearch.addEventListener('input', function () {
+            const term = this.value.trim().toLowerCase();
+            let visible = 0;
+
+            adminRows.forEach(function (row) {
+                const matches = row.dataset.search.includes(term);
+                row.hidden = !matches;
+                if (matches) {
+                    visible += 1;
+                }
+            });
+
+            if (adminNoResults) {
+                adminNoResults.hidden = visible !== 0 || term === '';
+            }
+        });
+    }
+</script>
+{% endblock %}
