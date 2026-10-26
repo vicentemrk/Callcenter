@@ -2,9 +2,16 @@ import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
+import environ
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIRS = os.path.join(BASE_DIR,'templates')
+
+# Carga el archivo .env del proyecto con django-environ.
+# read_env no sobreescribe variables que ya existan en el entorno del sistema,
+# por lo que en produccion las variables reales siempre tienen prioridad.
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -143,6 +150,16 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+
+# ---------------------------------------------------------------------------
+# Configuracion del asistente de IA (Groq remoto).
+# Todo se puede sobreescribir desde el .env o desde el entorno del sistema.
+# ---------------------------------------------------------------------------
+IA_API_KEY = os.environ.get('IA_API_KEY', '') or os.environ.get('OPENAI_API_KEY', '')
+IA_BASE_URL = os.environ.get('IA_BASE_URL', 'https://api.groq.com/openai/v1').strip()
+IA_MODEL = os.environ.get('IA_MODEL', 'openai/gpt-oss-20b').strip()
+IA_TIMEOUT = float(os.environ.get('IA_TIMEOUT', '15'))
+IA_MAX_TOKENS = int(os.environ.get('IA_MAX_TOKENS', '400'))
 
 # Logging: los mensajes se muestran en consola y se guardan en este archivo.
 LOG_DIR = BASE_DIR / 'logs'
