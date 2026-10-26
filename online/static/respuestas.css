@@ -1,18 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap');
 
+/* ============================================================================
+   Chat de respuestas: superficie plana.
+   El antiguo wallpaper (dos imágenes que devolvían 404 y luego un patrón de
+   gradientes) se retiró: ahora el fondo es un color sólido y el recuadro de la
+   imagen aloja el carrusel de gatos.
+   ========================================================================== */
+
+/* Dos columnas: conversación a la izquierda, ficha + carrusel a la derecha.
+   El ancho lo decide el contenedor, así los hijos no necesitan márgenes propios. */
+.chat-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+    width: min(1280px, calc(100% - 32px));
+    max-width: 1280px;
+    margin: 20px auto 40px;
+    align-items: start;
+}
 
 .MainRespuestas {
-    background-image: url('./img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png');
+    /* Ocupa la columna que le da la grilla, sin desbordarla */
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    /* Crece con la ventana, pero sin pasar de 760px ni bajar de 420px */
+    height: clamp(420px, calc(100vh - 280px), 760px);
+    min-height: 380px;
+    overflow: hidden;
     background-color: rgb(240, 242, 245);
-    border-radius: 5px;
-    margin-top: 20px;
-    width: 1280px;
-    height: 700px;
     border: 1px solid rgb(52, 32, 150);
-    box-shadow: 0px 0px 5px 2px rgba(78, 49, 225, 0.5);
+    border-radius: 5px;
     position: relative;
-    margin-left: 50px;
-    float: left;
+}
+
+/* El formulario de la barra de escritura es el último hijo flex del chat */
+.MainRespuestas > form {
+    flex: 0 0 auto;
+    width: 100%;
 }
 
 #Rojo{
@@ -45,46 +72,72 @@
     margin-bottom: 15px;
 }
 
+.divPregunta {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    padding: 0 15px 15px;
+    border-radius: 5px;
+    border: 1px solid rgb(52, 32, 150);
+    background-color: #ffffff;
+    font-family: "DM Sans", sans-serif;
+    overflow-wrap: anywhere;
+}
+
 .divPregunta h2{
     font-family: "DM Sans", sans-serif;
     color: rgb(52, 32, 150);
     font-size: 18px;
-    margin-left: 15px;
+    margin: 10px 0 0;
 }
 
 .divPregunta a{
     color: black;
     font-weight: 200;
     font-size: 18px;
+    overflow-wrap: anywhere;
 }
 
+/* Marco del carrusel: superficie sólida, borde de 1px y sin relleno decorativo.
+   Si las imágenes no cargan (404) el marco sigue viéndose como un bloque. */
 .divFondo{
-    width: 500px;
-    height: 250px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 160px;
+    height: auto;
+    margin-top: 0;
+    padding: 10px;
     border-radius: 5px;
     border: 1px solid rgb(52, 32, 150);
+    background-color: #ffffff;
     font-family: "DM Sans", sans-serif;
-    box-shadow: 0px 0px 5px 2px rgba(78, 49, 225, 0.5);
-    margin-top: 25px;
-    background-image: url('./img/cuidadosgatobebe_2-focus-min0.07-0.45-640-384.jpg');
 }
 
+/* Columna de información: una sola columna con las tres tarjetas apiladas
+   (ficha de la pregunta, carrusel y cambio de fondo). */
 .dDerecha{
-    float: right;
-    width: 500px;
-    height: 800px;
-    margin-right: 50px;
-    margin-top: 20px;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    /* Cada tarjeta conserva su alto natural: la de información puede ser
+       mucho más alta que la vista previa del fondo. */
+    align-items: start;
 }
 
 .CambiarFondo{
-    width: 500px;
-    height: 150px;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    padding-bottom: 20px;
     border-radius: 5px;
     border: 1px solid rgb(52, 32, 150);
+    background-color: #ffffff;
     font-family: "DM Sans", sans-serif;
-    box-shadow: 0px 0px 5px 2px rgba(78, 49, 225, 0.5);
-    margin-top: 25px;
+    margin-top: 0;
 }
 
 .CambiarFondo h2{
@@ -95,71 +148,101 @@
 
 #btnFondo{
     width: 100%;
-    height: 50px;
+    min-height: 50px;
     display: flex;
-    justify-content:center ;
+    justify-content: center;
     align-items: center;
-    margin: 25px auto;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 25px auto 0;
 }
-
 
 #btnFondo button{
     width: 45px;
     height: 45px;
-    margin-left: 15px;
+    margin-left: 0;
 }
 
-.divPregunta{
-    width: 500px;
-    height: auto;
-    padding-bottom: 15px;
-    border-radius: 5px;
-    border: 1px solid rgb(52, 32, 150);
-    font-family: "DM Sans", sans-serif;
-    box-shadow: 0px 0px 5px 2px rgba(78, 49, 225, 0.5);
-}
-
+/* Barra de escritura: antes era absolute con textarea de 90% + margen fijo */
 .MainRespuestas textarea {
-    resize: none;
-    width: 90%;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    min-height: 44px;
+    max-height: 160px;
+    margin: 0;
+    padding: 10px 14px;
+    resize: vertical;
     border-radius: 10px;
-    padding-left: 15px;
-    height: 35px;
     outline: none;
     border: none;
     background-color: rgb(255, 255, 255);
-    margin-left: 50px;
     font-family: "DM Sans", sans-serif;
     font-size: 15px;
-    padding-top: 15px;
-    max-height: 60px;
+    line-height: 1.4;
 }
 
+/* Zona de mensajes: scrollea sola y reparte el alto disponible */
 .divRespuestas {
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
-    height: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     overflow-x: hidden;
     overflow-y: auto;
-    padding-bottom: 15px;
+    padding: 18px 18px 12px;
 }
 
 .TextArea {
-    width: auto;
-    height: 65px;
+    position: relative;
     width: 100%;
-    position: absolute;
-    bottom: 0px;
+    height: auto;
+    min-height: 64px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
     background-color: rgb(241, 241, 241);
     border-top: 1.5px solid rgba(160, 161, 163, 0.5);
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
-    display: flex;
-    align-items: center;
+}
+
+/* Django envuelve el campo en un <div>: lo hacemos crecer dentro de la barra
+   para que el textarea ocupe todo el ancho y el botón quede al final. */
+.TextArea > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* La etiqueta "Respuesta:" no ocupa una línea dentro de la barra de chat:
+   se oculta visualmente pero sigue disponible para lectores de pantalla. */
+.TextArea label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
 #btnSend {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
     border: none;
-    margin-left: 5px;
+    border-radius: 50%;
+    background-color: transparent;
     color: rgb(123, 139, 148);
     font-size: 20px;
     cursor: pointer;
@@ -168,66 +251,69 @@
 
 #btnSend:hover{
     color: rgb(47, 50, 51);
+    background-color: #ece7ff;
 }
 
+#btnSend:focus-visible {
+    outline: 2px solid #4E31E1;
+    outline-offset: 2px;
+}
+
+/* Burbuja propia: se alinea a la derecha con align-self, sin píxeles mágicos */
 .dRespuestas {
-    max-width: 500px;
+    align-self: flex-end;
+    margin-left: auto;
+    max-width: min(70%, 640px);
     height: auto;
-    margin-top: 10px;
-    margin-left: 750px;
+    margin-top: 0;
     border-radius: 15px;
     color: white;
-    border: none;
-    box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, 0.5);
-    padding-left: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-right: 10px;
+    border: 1px solid #2f1a80;
+    padding: 10px 12px;
     background-color: rgb(52, 32, 150);
     display: flex;
     flex-direction: column;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .dRespuestas h1 {
     font-family: "DM Sans", sans-serif;
     font-size: 18px;
     color: white;
-    width: 120px;
+    max-width: 100%;
 }
 
 .dRespuestas p {
     font-size: 15px;
     font-family: "DM Sans", sans-serif;
+    overflow-wrap: anywhere;
 }
 
 .dRespuestas h4{
-    display: inline;
-    float: right;
+    display: block;
+    float: none;
+    text-align: right;
     font-family: "DM Sans", sans-serif;
     font-size: 12px;
     font-weight: 100;
 }
 
+/* Burbuja de otros usuarios: a la izquierda */
 .dRespuestasOtro {
+    align-self: flex-start;
+    margin-right: auto;
     overflow: hidden;
-    overflow-wrap: break-word;
-    max-width: 500px;
+    overflow-wrap: anywhere;
+    max-width: min(70%, 640px);
     display: flex;
     flex-direction: column;
     height: auto;
-    margin-top: 10px;
-    margin-left: 15px;
+    margin-top: 0;
     border-radius: 15px;
     color: black;
-    border: none;
-    box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, 0.5);
-    padding-left: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-right: 10px;
+    border: 1px solid #c8c2dd;
+    padding: 10px 12px;
     background-color: rgb(240, 242, 245);
-    overflow-wrap: break-word;
 }
 
 .dRespuestasOtro h1 {
@@ -235,25 +321,29 @@
     font-size: 18px;
     color: rgb(52, 32, 150);
     width: auto;
+    max-width: 100%;
+    overflow-wrap: anywhere;
 }
 
 .dRespuestasOtro p {
     font-size: 14px;
     font-family: "DM Sans", sans-serif;
+    overflow-wrap: anywhere;
 }
 
 .dRespuestasOtro h4{
-    display: inline;
-    float: right;
+    display: block;
+    float: none;
+    text-align: right;
     font-family: "DM Sans", sans-serif;
     font-size: 12px;
     font-weight: 100;
 }
 
 .dHora{
-    float: right;
+    align-self: flex-end;
+    margin-top: 4px;
 }
-
 
 ::-webkit-scrollbar {
     width: 10px;
@@ -269,4 +359,614 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+/* ---------------------------------------------------------------------------
+   Ajustes por ancho: nada de scroll horizontal en 1400, 900 y 600px
+   ------------------------------------------------------------------------ */
+@media (max-width: 1400px) {
+    .chat-layout {
+        width: min(1280px, calc(100% - 24px));
+    }
+
+    .dRespuestas,
+    .dRespuestasOtro {
+        max-width: min(72%, 560px);
+    }
+}
+
+/* Columna derecha algo más estrecha antes de apilar */
+@media (max-width: 1100px) {
+    .chat-layout {
+        grid-template-columns: minmax(0, 1fr) 320px;
+    }
+}
+
+@media (max-width: 900px) {
+    .chat-layout {
+        grid-template-columns: minmax(0, 1fr);
+        width: calc(100% - 24px);
+    }
+
+    .MainRespuestas {
+        height: clamp(400px, calc(100vh - 240px), 640px);
+        min-height: 340px;
+    }
+
+    .dDerecha {
+        gap: 16px;
+    }
+
+    .divRespuestas {
+        padding: 14px 14px 10px;
+    }
+
+    .dRespuestas,
+    .dRespuestasOtro {
+        max-width: min(85%, 100%);
+        padding: 8px 11px;
+    }
+
+    #Titulopreg {
+        font-size: 22px;
+    }
+
+    .divPregunta h2,
+    .divPregunta a {
+        font-size: 16px;
+    }
+
+    .MainRespuestas textarea {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 600px) {
+    .chat-layout {
+        width: calc(100% - 20px);
+        margin: 12px auto 28px;
+        gap: 14px;
+    }
+
+    .MainRespuestas {
+        height: clamp(360px, calc(100vh - 210px), 560px);
+        min-height: 320px;
+        border-radius: 8px;
+    }
+
+    .dDerecha {
+        gap: 14px;
+    }
+
+    .divRespuestas {
+        padding: 12px 10px 8px;
+        gap: 8px;
+    }
+
+    .dRespuestas,
+    .dRespuestasOtro {
+        max-width: 88%;
+    }
+
+    .dRespuestas p {
+        font-size: 14px;
+    }
+
+    .dRespuestasOtro p {
+        font-size: 13px;
+    }
+
+    .dRespuestas h1,
+    .dRespuestasOtro h1 {
+        font-size: 15px;
+    }
+
+    .TextArea {
+        min-height: 58px;
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .MainRespuestas textarea {
+        height: 42px;
+        min-height: 42px;
+        font-size: 14px;
+        padding: 9px 12px;
+    }
+
+    #btnSend {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    #Titulopreg {
+        font-size: 20px;
+        margin-top: 12px;
+        margin-bottom: 10px;
+    }
+
+    .divPregunta {
+        padding: 0 12px 12px;
+    }
+
+    .divPregunta h2,
+    .divPregunta a {
+        font-size: 15px;
+    }
+
+    .divFondo {
+        min-height: 130px;
+    }
+
+    #btnFondo button {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* ============================================================================
+   Cabecera de la conversación y ficha de la pregunta
+   Se agrega al final para no alterar las reglas existentes del chat.
+   Los overrides del modo oscuro viven en online/static/tema.css.
+   ========================================================================== */
+
+.chat-cabecera {
+    width: min(1280px, calc(100% - 32px));
+    margin: 20px auto 0;
+    padding: 20px 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    background-color: #ffffff;
+    border: 1px solid rgb(231, 228, 242);
+    border-left: 4px solid #4E31E1;
+    border-radius: 14px;
+    font-family: "DM Sans", sans-serif;
+}
+
+.chat-cabecera-texto {
+    min-width: 0;
+}
+
+.chat-cabecera-etiqueta {
+    color: #6c6880;
+    font-size: 0.74em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.chat-cabecera-titulo {
+    margin-top: 6px;
+    color: rgb(52, 32, 150);
+    font-family: "DM Sans", sans-serif;
+    font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+}
+
+.chat-cabecera-datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+    color: #6c6880;
+    font-size: 0.86em;
+}
+
+.chat-cabecera-datos li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.chat-cabecera-datos i {
+    color: #4E31E1;
+}
+
+.chat-cabecera-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.chat-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    background: #f6f4ff;
+    border: 1px solid rgba(78, 49, 225, 0.3);
+    border-radius: 8px;
+    color: #4E31E1;
+    font-size: 0.88em;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.chat-volver:hover {
+    background: #ece7ff;
+    border-color: rgba(78, 49, 225, 0.55);
+    color: #4E31E1;
+}
+
+.chat-volver:focus-visible,
+.chat-cabecera a:focus-visible {
+    outline: 2px solid #4E31E1;
+    outline-offset: 2px;
+}
+
+/* Ficha de la pregunta dentro de la columna derecha */
+.chat-info-label {
+    margin-top: 6px;
+    color: #6c6880;
+    font-size: 0.76em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.chat-info-texto {
+    margin-top: 6px;
+    color: #2c2547;
+    font-size: 0.95em;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.chat-info-datos {
+    display: grid;
+    gap: 8px;
+    margin: 16px 0 0;
+    padding: 0;
+}
+
+.chat-info-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(78, 49, 225, 0.2);
+}
+
+.chat-info-fila:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.chat-info-fila dt {
+    color: #6c6880;
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.chat-info-fila dd {
+    margin: 0;
+    color: #2c2547;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.chat-sin-mensajes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: auto;
+    padding: 18px;
+    color: #6c6880;
+    text-align: center;
+}
+
+.chat-sin-mensajes i {
+    font-size: 1.6em;
+    color: #a79fd0;
+}
+
+.chat-sin-mensajes p {
+    font-size: 0.9em;
+}
+
+/* Badges de estado y prioridad (mismo lenguaje que el panel de admin) */
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.74em;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.admin-badge::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.admin-badge-pendiente {
+    background: #fff3e2;
+    color: #9c3d00;
+}
+
+.admin-badge-en_proceso {
+    background: #e7f2ff;
+    color: #17569b;
+}
+
+.admin-badge-resuelto {
+    background: #e3f8f0;
+    color: #0b6b57;
+}
+
+.admin-badge-cerrado {
+    background: #eef0f3;
+    color: #414b57;
+}
+
+.admin-badge[class*="admin-badge-prioridad-"] {
+    background: transparent;
+    border-color: currentColor;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.admin-badge[class*="admin-badge-prioridad-"]::before {
+    width: 5px;
+    height: 5px;
+}
+
+.admin-badge-prioridad-baja {
+    color: #4b5563;
+}
+
+.admin-badge-prioridad-media {
+    color: #8a4b00;
+}
+
+.admin-badge-prioridad-alta {
+    color: #b23c00;
+}
+
+.admin-badge.admin-badge-prioridad-urgente {
+    background: #fdecec;
+    border-color: #b02a37;
+    color: #9b1c1c;
+}
+
+@media (max-width: 1400px) {
+    .chat-cabecera {
+        width: min(1280px, calc(100% - 24px));
+    }
+}
+
+@media (max-width: 900px) {
+    .chat-cabecera {
+        width: calc(100% - 24px);
+        padding: 16px 18px;
+        margin-top: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .chat-cabecera {
+        width: calc(100% - 20px);
+        padding: 14px;
+        margin-top: 12px;
+        gap: 12px;
+    }
+
+    .chat-volver {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ============================================================================
+   Carrusel de gatos
+   ----------------------------------------------------------------------------
+   Funciona sin JavaScript: la pista es un contenedor con scroll horizontal
+   nativo y scroll-snap. Las flechas y los puntos son mejora progresiva; sin JS
+   quedan ocultos ([hidden]) para no dejar controles muertos a la vista.
+   Los overrides del modo oscuro viven en tema.css (sección 14.6).
+   ========================================================================== */
+
+.gatos-carrusel {
+    position: relative;
+    max-width: 100%;
+}
+
+.gatos-slides {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    background-color: #f4f2fa;
+    border-radius: 4px;
+    scrollbar-width: thin;
+}
+
+.gatos-slides::-webkit-scrollbar {
+    height: 8px;
+}
+
+.gato-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    display: flex;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+}
+
+.gato-slide img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 728 / 455;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Controles: solo se muestran cuando el JS confirma que puede mover la pista */
+.gatos-controles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.gatos-controles[hidden] {
+    display: none;
+}
+
+.gatos-flecha {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background-color: #ffffff;
+    border: 1px solid #cfc6ee;
+    border-radius: 8px;
+    color: #4E31E1;
+    font-family: "DM Sans", sans-serif;
+    font-size: 1.5em;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.gatos-flecha:hover:not(:disabled) {
+    background-color: #ece7ff;
+    border-color: #4E31E1;
+}
+
+.gatos-flecha:disabled {
+    background-color: #f6f4ff;
+    border-color: #e7e4f2;
+    color: #5f5a75;
+    cursor: not-allowed;
+}
+
+.gatos-flecha:focus-visible {
+    outline: 3px solid #4E31E1;
+    outline-offset: 2px;
+}
+
+.gatos-puntos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+}
+
+.gatos-punto {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.gatos-punto::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #6c6880;
+}
+
+.gatos-punto:hover::before {
+    background-color: #4E31E1;
+}
+
+.gatos-punto[aria-current="true"]::before {
+    width: 12px;
+    height: 12px;
+    background-color: #4E31E1;
+}
+
+.gatos-punto:focus-visible {
+    outline: none;
+}
+
+.gatos-punto:focus-visible::before {
+    outline: 3px solid #4E31E1;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gatos-slides {
+        scroll-behavior: auto;
+    }
+}
+
+/* Al apilarse (≤900px) la columna ocupa todo el ancho: se acota el alto de la
+   foto para que el carrusel no se coma la pantalla. object-fit: cover evita
+   deformar la imagen. */
+@media (max-width: 900px) {
+    .gato-slide img {
+        height: 280px;
+    }
+}
+
+@media (max-width: 600px) {
+    .divFondo {
+        padding: 8px;
+    }
+
+    .gato-slide img {
+        height: 230px;
+    }
+
+    .gatos-controles {
+        gap: 6px;
+    }
+
+    .gatos-flecha {
+        width: 44px;
+        height: 44px;
+    }
+
+    .gatos-punto {
+        width: 40px;
+        height: 40px;
+    }
 }

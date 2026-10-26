@@ -1,70 +1,425 @@
 {% extends "componentes/header.html" %}
 {% load static %}
 {% block links %}
-<link rel="stylesheet" href="{% static 'respuestas.css' %}">
+<link rel="stylesheet" href="{% static 'respuestas.css' %}?v=20261026-chat2">
 {% endblock %}
 
 {% block title %}Respuestas{% endblock %}
 
 {% block content %}
-    <div class="MainRespuestas" id="FondoColores">
-        <div class="divRespuestas">
-            {% for Respuesta in Respuestas %}
-            {% if Respuesta.Usuario.id == user.id %}
-            <div class="dRespuestas">
-                <p>{{ Respuesta.Respuesta }}</p>
-                <div class="dHora"><h4>{{ Respuesta.FechaHora.time }}</h4></div>
-            </div>
-            {% else %}
-            <div class="dRespuestasOtro">
-                <h1>{{Respuesta.Usuario}}</h1>
-                <p>{{ Respuesta.Respuesta }}</p>
-                <div class="dHora"><h4>{{ Respuesta.FechaHora.time }}</h4></div>
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
-        <form method="post">
-            <div class="TextArea">
-                {{form}}
-                <button id="btnSend" type="submit"><i class="fa-solid fa-paper-plane fa-xl"></i></button>
-            </div>
-            {% csrf_token %}
-        </form>
-    </div>
-    <div class="dDerecha">
-        <div class="divPregunta">
-            <h2 id="Titulopreg">Información</h2>
-            <hr>
-            <h2>Titulo: <a>{{Pregunta.Titulo}}</a></h2>
-            <h2>Usuario: <a>{{Pregunta.Usuario}}</a></h2>
-            <h2>Pregunta: <a>{{Pregunta.Pregunta}}</a></h2>
-        </div>
-        <div class="divFondo"></div>
-        <div class="CambiarFondo">
-            <h2>Cambiar fondo de chat</h2>
-            <div id="btnFondo">
-                <button id="Rojo" onclick="cambiarColor('red')"></button>
-                <button id="Gris" onclick="cambiarColor('#323232')"></button>
-                <button id="Rosita" onclick="cambiarColor('#C4BAF5')"></button>
-            </div>
+<section class="chat-cabecera" aria-labelledby="chat-titulo">
+    <div class="chat-cabecera-texto">
+        <p class="chat-cabecera-etiqueta">Conversación #{{ Pregunta.idPregunta }}</p>
+        <h1 class="chat-cabecera-titulo" id="chat-titulo">{{ Pregunta.Titulo }}</h1>
+        <ul class="chat-cabecera-datos">
+            <li><i class="fas fa-user" aria-hidden="true"></i> {{ Pregunta.Usuario }}</li>
+            <li><i class="fas fa-calendar" aria-hidden="true"></i> {{ Pregunta.Fecha_creacion|date:"d/m/Y H:i" }}</li>
+            <li><i class="fas fa-tag" aria-hidden="true"></i> {{ Pregunta.get_categoria_display }}</li>
+            <li><i class="fas fa-comments" aria-hidden="true"></i> {{ Respuestas|length }} respuesta{{ Respuestas|length|pluralize:"s" }}</li>
+        </ul>
+        <div class="chat-cabecera-badges">
+            <span class="admin-badge admin-badge-{{ Pregunta.estado }}">{{ Pregunta.get_estado_display }}</span>
+            <span class="admin-badge admin-badge-prioridad-{{ Pregunta.prioridad }}">{{ Pregunta.get_prioridad_display }}</span>
         </div>
     </div>
+    <a class="chat-volver" href="{% if user.rol == 'administrador' or user.rol == 'tecnico' %}{% url 'administracion' %}{% else %}{% url 'inicio' user.id %}{% endif %}">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Volver
+    </a>
+</section>
+
+<div class="chat-layout">
+<div class="MainRespuestas" id="FondoColores">
+    <div class="divRespuestas">
+        {% for Respuesta in Respuestas %}
+        {% if Respuesta.Usuario.id == user.id %}
+        <div class="dRespuestas">
+            <p>{{ Respuesta.Respuesta }}</p>
+            <div class="dHora"><h4>{{ Respuesta.FechaHora.time }}</h4></div>
+        </div>
+        {% else %}
+        <div class="dRespuestasOtro">
+            <h1>{{Respuesta.Usuario}}</h1>
+            <p>{{ Respuesta.Respuesta }}</p>
+            <div class="dHora"><h4>{{ Respuesta.FechaHora.time }}</h4></div>
+        </div>
+        {% endif %}
+        {% empty %}
+        <div class="chat-sin-mensajes">
+            <i class="fas fa-comment-dots" aria-hidden="true"></i>
+            <p>Todavía no hay respuestas en esta conversación.</p>
+        </div>
+        {% endfor %}
+    </div>
+    <form method="post">
+        <div class="TextArea">
+            {{form}}
+            <button id="btnSend" type="submit" aria-label="Enviar respuesta"><i class="fa-solid fa-paper-plane fa-xl" aria-hidden="true"></i></button>
+        </div>
+        {% csrf_token %}
+    </form>
+</div>
+
+<div class="dDerecha">
+    <div class="divPregunta">
+        <h2 id="Titulopreg">Información</h2>
+        <hr>
+        <h2 class="chat-info-label">Pregunta</h2>
+        <p class="chat-info-texto">{{ Pregunta.Pregunta }}</p>
+        <dl class="chat-info-datos">
+            <div class="chat-info-fila">
+                <dt>Categoría</dt>
+                <dd>{{ Pregunta.get_categoria_display }}</dd>
+            </div>
+            <div class="chat-info-fila">
+                <dt>Estado</dt>
+                <dd><span class="admin-badge admin-badge-{{ Pregunta.estado }}">{{ Pregunta.get_estado_display }}</span></dd>
+            </div>
+            <div class="chat-info-fila">
+                <dt>Prioridad</dt>
+                <dd><span class="admin-badge admin-badge-prioridad-{{ Pregunta.prioridad }}">{{ Pregunta.get_prioridad_display }}</span></dd>
+            </div>
+            <div class="chat-info-fila">
+                <dt>Respuestas</dt>
+                <dd>{{ Respuestas|length }}</dd>
+            </div>
+        </dl>
+    </div>
+    {# Textos alternativos provisionales: el carrusel es decorativo, se acortan para no competir con el ticket. #}
+    <div class="divFondo">
+        <div class="gatos-carrusel" data-carrusel-gatos>
+            <ul class="gatos-slides" id="gatos-slides">
+                <li class="gato-slide">
+                    <img src="{% static 'img/Gato_1.webp' %}" alt="Gato 1 de 6 del carrusel"
+                         width="728" height="455" decoding="async">
+                </li>
+                <li class="gato-slide">
+                    <img src="{% static 'img/Gato_2.webp' %}" alt="Gato 2 de 6 del carrusel"
+                         width="740" height="493" loading="lazy" decoding="async">
+                </li>
+                <li class="gato-slide">
+                    <img src="{% static 'img/Gato_3.webp' %}" alt="Gato 3 de 6 del carrusel"
+                         width="728" height="410" loading="lazy" decoding="async">
+                </li>
+                <li class="gato-slide">
+                    <img src="{% static 'img/Gato_4.webp' %}" alt="Gato 4 de 6 del carrusel"
+                         width="678" height="452" loading="lazy" decoding="async">
+                </li>
+                <li class="gato-slide">
+                    <img src="{% static 'img/Gato_5.webp' %}" alt="Gato 5 de 6 del carrusel"
+                         width="740" height="494" loading="lazy" decoding="async">
+                </li>
+                <li class="gato-slide">
+                    <img src="{% static 'img/Gato_6.webp' %}" alt="Gato 6 de 6 del carrusel"
+                         width="740" height="493" loading="lazy" decoding="async">
+                </li>
+            </ul>
+            <div class="gatos-controles" hidden>
+                <button type="button" class="gatos-flecha" data-gatos-dir="-1"
+                        aria-label="Imagen anterior" aria-controls="gatos-slides"
+                        aria-disabled="true" disabled>&#8249;</button>
+                <div class="gatos-puntos" role="tablist" aria-label="Seleccionar imagen">
+                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 1"
+                            aria-controls="gatos-slides" aria-current="true" aria-selected="true"></button>
+                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 2"
+                            aria-controls="gatos-slides" aria-selected="false"></button>
+                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 3"
+                            aria-controls="gatos-slides" aria-selected="false"></button>
+                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 4"
+                            aria-controls="gatos-slides" aria-selected="false"></button>
+                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 5"
+                            aria-controls="gatos-slides" aria-selected="false"></button>
+                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 6"
+                            aria-controls="gatos-slides" aria-selected="false"></button>
+                </div>
+                <button type="button" class="gatos-flecha" data-gatos-dir="1"
+                        aria-label="Imagen siguiente" aria-controls="gatos-slides"
+                        aria-disabled="false">&#8250;</button>
+            </div>
+        </div>
+    </div>
+    <div class="CambiarFondo">
+        <h2>Cambiar fondo de chat</h2>
+        <div id="btnFondo">
+            <button id="Rojo" onclick="cambiarColor('red')" title="Fondo rojo" aria-label="Usar fondo rojo"></button>
+            <button id="Gris" onclick="cambiarColor('#323232')" title="Fondo gris" aria-label="Usar fondo gris"></button>
+            <button id="Rosita" onclick="cambiarColor('#C4BAF5')" title="Fondo lila" aria-label="Usar fondo lila"></button>
+        </div>
+    </div>
+</div>
+</div>
 {% endblock %}
 
 {% block js %}
 <script>
-    document.getElementById('id_Respuesta').onkeydown = function (e) {
-        if(e.key == "Enter"){
-            document.getElementById('btnSend').click()
+    var campoRespuesta = document.getElementById('id_Respuesta');
+    var botonEnviar = document.getElementById('btnSend');
+
+    if (campoRespuesta && botonEnviar) {
+        campoRespuesta.addEventListener('keydown', function (evento) {
+            if (evento.key === 'Enter' && !evento.shiftKey) {
+                evento.preventDefault();
+                botonEnviar.click();
+            }
+        });
+    }
+
+    function cambiarColor(NuevoColor) {
+        var elem = document.getElementById('FondoColores');
+        if (elem) {
+            elem.style.backgroundColor = NuevoColor;
         }
     }
-</script>
-<script src="https://kit.fontawesome.com/c1366bcc7f.js" crossorigin="anonymous"></script>
-<script>
-    function cambiarColor(NuevoColor){
-        const elem = document.getElementById('FondoColores');
-        elem.style.backgroundColor = NuevoColor;
-    }
+
+    /* Carrusel de gatos: mejora progresiva. Sin este bloque la pista sigue
+       funcionando con el scroll nativo y los controles quedan ocultos. */
+    (function () {
+        var carrusel = document.querySelector('[data-carrusel-gatos]');
+        if (!carrusel) {
+            return;
+        }
+
+        var pista = carrusel.querySelector('.gatos-slides');
+        var controles = carrusel.querySelector('.gatos-controles');
+        var anterior = carrusel.querySelector('[data-gatos-dir="-1"]');
+        var siguiente = carrusel.querySelector('[data-gatos-dir="1"]');
+        var puntos = carrusel.querySelectorAll('.gatos-punto');
+
+        if (!pista || !controles || !anterior || !siguiente || !puntos.length) {
+            return;
+        }
+
+        var total = puntos.length;
+        var movimientoReducido = false;
+
+        try {
+            movimientoReducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        } catch (error) {
+            movimientoReducido = false;
+        }
+
+        /* --- Autoplay -------------------------------------------------------
+           Avanza cada 2 s y vuelve a la primera tras la última. Se detiene con
+           el puntero encima, con el foco dentro, con la pestaña oculta, cuando
+           el carrusel sale de pantalla y durante 6 s tras un gesto manual.
+           Si el sistema pide movimiento reducido no se anima el desplazamiento
+           (salto instantáneo), pero el avance se mantiene: es lo que pidió el
+           usuario para la presentación. */
+        var TICK = 2000;
+        var ESPERA_GESTO = 6000;
+        var TEMPORIZADOR = null;
+        var reanudarEn = 0;
+        var deslizando = false;
+        var desplazamientoPropio = false;
+        var esperaAsentar = null;
+        var esperaPropio = null;
+
+        var pausas = {
+            puntero: false,
+            foco: false,
+            oculto: document.hidden === true,
+            fuera: false
+        };
+
+        function indiceActual() {
+            if (!pista.clientWidth) {
+                return 0;
+            }
+            var calculado = Math.round(pista.scrollLeft / pista.clientWidth);
+            return Math.max(0, Math.min(total - 1, calculado));
+        }
+
+        function marcar(boton, activo) {
+            if (activo) {
+                boton.setAttribute('aria-current', 'true');
+                boton.setAttribute('aria-selected', 'true');
+            } else {
+                boton.removeAttribute('aria-current');
+                boton.setAttribute('aria-selected', 'false');
+            }
+        }
+
+        function pintar() {
+            var actual = indiceActual();
+            var enInicio = actual === 0;
+            var enFinal = actual === total - 1;
+
+            anterior.disabled = enInicio;
+            anterior.setAttribute('aria-disabled', enInicio ? 'true' : 'false');
+            siguiente.disabled = enFinal;
+            siguiente.setAttribute('aria-disabled', enFinal ? 'true' : 'false');
+
+            for (var i = 0; i < puntos.length; i++) {
+                marcar(puntos[i], i === actual);
+            }
+        }
+
+        function ir(indice) {
+            if (!pista.clientWidth) {
+                return;
+            }
+            var destino = Math.max(0, Math.min(total - 1, indice)) * pista.clientWidth;
+            desplazamientoPropio = true;
+            if (esperaPropio) {
+                window.clearTimeout(esperaPropio);
+            }
+            esperaPropio = window.setTimeout(function () {
+                desplazamientoPropio = false;
+            }, 800);
+
+            if (pista.scrollTo) {
+                try {
+                    pista.scrollTo({
+                        left: destino,
+                        behavior: movimientoReducido ? 'auto' : 'smooth'
+                    });
+                    return;
+                } catch (error) {
+                    /* Sin opciones en scrollTo: caemos al scroll directo. */
+                }
+            }
+            pista.scrollLeft = destino;
+        }
+
+        function puedeAvanzar(ahora) {
+            if (pausas.puntero || pausas.foco || pausas.oculto || pausas.fuera) { return false; }
+            if (ahora < reanudarEn) { return false; }
+            /* Si la pista todavía se está moviendo, el turno se descarta. */
+            if (deslizando) { return false; }
+            return true;
+        }
+
+        function tick() {
+            if (!puedeAvanzar(Date.now())) {
+                return;
+            }
+            var proximo = indiceActual() + 1;
+            ir(proximo >= total ? 0 : proximo);
+        }
+
+        function correrAutoplay() {
+            var activo = !pausas.puntero && !pausas.foco && !pausas.oculto && !pausas.fuera;
+
+            if (activo && !TEMPORIZADOR) {
+                TEMPORIZADOR = window.setInterval(tick, TICK);
+            } else if (!activo && TEMPORIZADOR) {
+                window.clearInterval(TEMPORIZADOR);
+                TEMPORIZADOR = null;
+            }
+        }
+
+        /* Pulsar un punto o una flecha reinicia los 2 s, y cualquier gesto
+           manual deja 6 s de tregua antes de que el carrusel vuelva a moverse. */
+        function gestoManual(reiniciar) {
+            reanudarEn = Date.now() + ESPERA_GESTO;
+            if (reiniciar && TEMPORIZADOR) {
+                window.clearInterval(TEMPORIZADOR);
+                TEMPORIZADOR = null;
+            }
+            correrAutoplay();
+        }
+
+        anterior.addEventListener('click', function () {
+            ir(indiceActual() - 1);
+            gestoManual(true);
+        });
+
+        siguiente.addEventListener('click', function () {
+            ir(indiceActual() + 1);
+            gestoManual(true);
+        });
+
+        for (var i = 0; i < puntos.length; i++) {
+            (function (indice) {
+                puntos[indice].addEventListener('click', function () {
+                    ir(indice);
+                    gestoManual(true);
+                });
+            })(i);
+        }
+
+        var pendiente = false;
+        pista.addEventListener('scroll', function () {
+            deslizando = true;
+            if (esperaAsentar) {
+                window.clearTimeout(esperaAsentar);
+            }
+            esperaAsentar = window.setTimeout(function () {
+                deslizando = false;
+            }, 600);
+
+            /* Un scroll que no lanzó el propio carrusel es un gesto del usuario. */
+            if (!desplazamientoPropio) {
+                reanudarEn = Date.now() + ESPERA_GESTO;
+            }
+
+            if (pendiente) {
+                return;
+            }
+            pendiente = true;
+            window.requestAnimationFrame(function () {
+                pendiente = false;
+                pintar();
+            });
+        }, { passive: true });
+
+        /* Rueda, arrastre y teclado también cuentan como gesto manual. */
+        ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function (evento) {
+            pista.addEventListener(evento, function () {
+                reanudarEn = Date.now() + ESPERA_GESTO;
+            }, { passive: true });
+        });
+
+        carrusel.addEventListener('pointerenter', function () {
+            pausas.puntero = true;
+            correrAutoplay();
+        });
+
+        carrusel.addEventListener('pointerleave', function () {
+            pausas.puntero = false;
+            correrAutoplay();
+        });
+
+        carrusel.addEventListener('focusin', function () {
+            pausas.foco = true;
+            correrAutoplay();
+        });
+
+        carrusel.addEventListener('focusout', function (evento) {
+            pausas.foco = !!(evento.relatedTarget && carrusel.contains(evento.relatedTarget));
+            correrAutoplay();
+        });
+
+        document.addEventListener('visibilitychange', function () {
+            pausas.oculto = document.hidden === true;
+            correrAutoplay();
+        });
+
+        if ('IntersectionObserver' in window) {
+            var observador = new IntersectionObserver(function (entradas) {
+                pausas.fuera = !entradas[0].isIntersecting;
+                correrAutoplay();
+            }, { threshold: 0.25 });
+            observador.observe(carrusel);
+        }
+
+        window.addEventListener('resize', pintar);
+
+        /* Si la preferencia de movimiento cambia con la página abierta. */
+        try {
+            var consulta = window.matchMedia('(prefers-reduced-motion: reduce)');
+            if (consulta.addEventListener) {
+                consulta.addEventListener('change', function (evento) {
+                    movimientoReducido = evento.matches;
+                    correrAutoplay();
+                });
+            }
+        } catch (error) {
+            /* Navegador sin MediaQueryList: se queda la preferencia leída al cargar. */
+        }
+
+        controles.hidden = false;
+        pintar();
+        correrAutoplay();
+    })();
 </script>
 {% endblock %}
