@@ -31,3 +31,91 @@ Integración entre Proyectos
 •	Un cliente contacta al call center para preguntar sobre la disponibilidad de una película en la plataforma. El sistema debe permitir acceder directamente a la ficha de la película desde el ticket de atención.
 
 7- Informe de Modificaciones: Descripción de los cambios realizados en cada aplicación y cómo se relacionan entre sí.
+
+============================================================================
+PENDIENTES Y AVANCE - actualizado 2026-11-16 (Big Pickle)
+============================================================================
+NOTA: esta seccion es la lista de trabajo vigente. planfinal.md se escribio
+antes de este recorte y todavia habla de 506 elementos y 8 fases: no usarlo
+como referencia de alcance.
+
+## HECHO
+[x] Carrusel del chat con imagenes Marvel (GatoMarvel_1..6.webp); se borraron
+    Gato_1..6.webp. Flechas dentro del marco, sin puntos, fotos cuadradas.
+[x] Bloque 0 - verificacion: manage.py check sin issues y 116 tests OK.
+[x] Bloque 1 - personajes fuera del catalogo:
+    - Codigo: constants, models (docstring), mcu_client (sin /characters),
+      services (METODOS_API y mapeo), sincronizar_mcu (--tipo sin character),
+      views (TIPOS_DE_URL y _CONFIGURADO), catalogo.html, detalle.html y
+      catalogo.css (se quito .MarvelTipo-character).
+    - Base: 375 personajes borrados. Catalogo: 75 peliculas + 56 series = 131.
+      Antes de borrar se verifico que 0 tickets los referenciaban.
+    - Tests: marvel/tests.py y online/tests.py adaptados (Batman/Tony Stark
+      -> Loki). La suite sigue en 116 tests OK.
+[x] Bloque 1 - campo tecnico_asignado en Preguntas (FK a Usuario, rol tecnico,
+    null, SET_NULL, related_name tickets_asignados) + migracion
+    online.0010_preguntas_tecnico_asignado (APLICADA).
+[x] Migracion marvel.0002_alter_elementocatalogo_tipo (APLICADA).
+[x] Limpieza: 4 backups de base archivados fuera del proyecto (solo queda
+    db.sqlite3) y .gitignore ampliado con *.bak-*.
+[x] Bitacora cambios_marvel.txt actualizada.
+
+## PENDIENTE - Bloque 2: tema, header y footer (2,5 h)
+[ ] Capa marca.css cargada al final con negro y rojo Marvel (no refactorizar
+    los 8 CSS existentes: quedan 78 lineas con la paleta violeta).
+[ ] Tema oscuro por defecto (script anti-FOUC: dark si no hay preferencia
+    guardada) y claro opcional, ambos con rojo Marvel.
+[ ] Footer: pasar de position: fixed a estatico al final del documento
+    (estiloHeader.css; revisar body padding-bottom: 132px).
+[ ] Header: logo Marvel y nav Inicio / Universo Marvel / Catalogo.
+[ ] Index: quitar la redireccion por rol para que admin y tecnico vean las
+    landings; CTA al panel si hay sesion. Ajustar los 3 tests de Index
+    (test_index_redirige_al_cliente / administrador / tecnico).
+
+## PENDIENTE - Bloque 3: categorias e IA (1,5 h)
+[ ] CATEGORIAS_PREGUNTA nuevas: Videojuegos (con ejemplos Marvel),
+    Merchandising, Peliculas, Series, Comics, Figuras/Juguetes, Eventos,
+    Cuenta, Pagos, Otros.
+[ ] Prompt de online/ia_utils.py reescrito al contexto Marvel (hoy clasifica
+    hardware/gamer).
+[ ] Actualizar tests de clasificacion y textos de formularios/plantillas.
+
+## PENDIENTE - Bloque 4: landings y rutas (2 h)
+[ ] "/" landing del call center.
+[ ] "/marvel/" landing Marvel con seccion visual de personajes (6-8 imagenes,
+    sin enlaces, sin actores) y peliculas/series enlazadas al catalogo.
+[ ] "/marvel/catalogo/" catalogo (hoy esta en "/marvel/") y "/marvel/<pk>/"
+    detalle.
+[ ] Ajustar tests que hoy piden el catalogo en "/marvel/".
+
+## PENDIENTE - Bloque 5: resenas (2,5 h)
+[ ] Modelo Resena (solo movie/tvshow) con referencia tematica obligatoria
+    (10-200 caracteres).
+[ ] Visibles al publicar; ocultas solo para admin y para el propio autor
+    (con etiqueta "Oculta por moderacion"); tecnico ve solo visibles.
+[ ] Acciones de moderacion (ocultar/restaurar) solo admin + tests.
+
+## PENDIENTE - Bloque 6: seed, UI del tecnico y demo (1 h)
+[ ] UI de tecnico_asignado (el campo ya existe, falta usarlo): selector en el
+    panel de admin/tecnico, badge en la ficha del ticket y filtro por tecnico.
+[ ] Tests del campo: asignar, SET_NULL al borrar el tecnico, limit_choices_to.
+[ ] seed_demo idempotente: NUNCA borra usuarios/tecnicos/admins; con
+    --reset-tickets borra solo Preguntas y Respuesta.
+[ ] Datos para la demo: 15 tickets en las categorias nuevas, respuestas del
+    staff, 12 resenas (2 ocultas) y algunos tickets ligados a peliculas.
+
+## PENDIENTE - Bloque 7: cierre (1,5 h)
+[ ] Informe de modificaciones (fuente del catalogo: augustomarcelo/mcuapi).
+[ ] Capturas y ensayo de la demo.
+[ ] Revision visual en navegador del carrusel en tema claro y oscuro (no se
+    pudo validar desde el agente: check y tests no prueban CSS/JS en pantalla).
+
+## RECORTES si el tiempo aprieta (en este orden)
+1. Pulido del tema claro (dejar el toggle funcionando).
+2. Promedio de resenas en las tarjetas del catalogo (solo en el detalle).
+3. Filtro por tecnico asignado (dejar campo y badge).
+4. Galeria de personajes a 6 imagenes fijas.
+5. Seed de 15 a 10 tickets.
+6. Informe extenso -> 3 paginas + capturas.
+No recortar: tema oscuro, footer, categorias/prompt, dos landings, resenas
+visibles, seed e informe.

@@ -195,12 +195,6 @@
     background: #eafaf5;
 }
 
-.MarvelTipo-character {
-    color: #8a4b13;
-    border-color: #f0d0aa;
-    background: #fdf3e6;
-}
-
 .MarvelTarjeta-descripcion {
     margin: 0;
     color: #6c6880;
@@ -472,8 +466,7 @@ html[data-theme="dark"] .MarvelTipo-movie {
     background: var(--accent-tint);
 }
 
-html[data-theme="dark"] .MarvelTipo-tvshow,
-html[data-theme="dark"] .MarvelTipo-character {
+html[data-theme="dark"] .MarvelTipo-tvshow {
     color: var(--text);
     border-color: var(--border);
     background: var(--surface-2);

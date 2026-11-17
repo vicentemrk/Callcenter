@@ -70,9 +70,6 @@ class ClienteSimulado:
     def obtener_series(self, page=1, limit=10, filtros=None):
         return self._responder('obtener_series', page, limit)
 
-    def obtener_personajes(self, page=1, limit=10, filtros=None):
-        return self._responder('obtener_personajes', page, limit)
-
 
 class PruebaMapeo(TestCase):
     """mapear_elemento traduce el JSON de la API por tipo de contenido."""
@@ -116,8 +113,8 @@ class PruebaMapeo(TestCase):
         self.assertIsNone(datos['fase'])
         self.assertEqual(datos['fecha_estreno'], date(2018, 9, 7))
 
-    def test_mapear_personaje_sin_fechas(self):
-        """Los personajes no traen fecha/fase/saga; deben quedar sin dato."""
+    def test_mapear_registro_de_personaje_queda_incompleto(self):
+        """Un registro de personaje ya no entra: no tiene 'title' y se descarta."""
         registro = {
             'id': 1,
             'name': 'Tony Stark',
@@ -126,11 +123,12 @@ class PruebaMapeo(TestCase):
             'image_url': 'https://ejemplo/tony.jpg',
         }
         datos = services.mapear_elemento('character', registro)
-        self.assertEqual(datos['nombre'], 'Tony Stark')
-        self.assertEqual(datos['descripcion'], 'Bilionario genio.')
-        self.assertIsNone(datos['fecha_estreno'])
-        self.assertIsNone(datos['fase'])
-        self.assertIsNone(datos['saga'])
+        self.assertIsNone(datos['nombre'])
+        self.assertIsNone(datos['descripcion'])
+
+        estado = services.guardar_elemento('character', registro, services._ahora())
+        self.assertEqual(estado, services.ESTADO_INCOMPLETO)
+        self.assertEqual(ElementoCatalogo.objects.count(), 0)
 
 
 class PruebaGuardarElemento(TestCase):
@@ -191,8 +189,8 @@ class PruebaGuardarElemento(TestCase):
         """El mismo mcu_id puede existir en tipos distintos (la API reusa ids)."""
         services.guardar_elemento('movie', self.registro(), services._ahora())
         services.guardar_elemento(
-            'character',
-            {'id': 1, 'name': 'Tony Stark', 'description': None, 'image_url': None},
+            'tvshow',
+            {'id': 1, 'title': 'Loki', 'overview': None, 'cover_url': None},
             services._ahora(),
         )
         self.assertEqual(ElementoCatalogo.objects.count(), 2)
@@ -312,7 +310,7 @@ class PruebaCatalogoVistas(TestCase):
     def test_busqueda_por_nombre(self):
         self.crear('movie', 1, 'Iron Man')
         self.crear('movie', 2, 'Iron Man 2')
-        self.crear('character', 1, 'Tony Stark')
+        self.crear('tvshow', 1, 'Loki')
 
         respuesta = self.client.get('/marvel/', {'q': 'iron man'})
         nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
@@ -322,15 +320,19 @@ class PruebaCatalogoVistas(TestCase):
     def test_filtro_por_tipo(self):
         self.crear('movie', 1, 'Iron Man')
         self.crear('tvshow', 1, 'WandaVision')
-        self.crear('character', 1, 'Tony Stark')
 
         respuesta = self.client.get('/marvel/', {'tipo': 'peliculas'})
         nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
         self.assertEqual(nombres, ['Iron Man'])
 
+        respuesta = self.client.get('/marvel/', {'tipo': 'series'})
+        nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
+        self.assertEqual(nombres, ['WandaVision'])
+
+        # El filtro de personajes ya no existe: se ignora y devuelve todo.
         respuesta = self.client.get('/marvel/', {'tipo': 'personajes'})
         nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
-        self.assertEqual(nombres, ['Tony Stark'])
+        self.assertEqual(set(nombres), {'Iron Man', 'WandaVision'})
 
     def test_filtro_por_fase(self):
         self.crear('movie', 1, 'Iron Man', fase=1)

@@ -22,7 +22,6 @@ ELEMENTOS_POR_PAGINA = 12
 TIPOS_DE_URL = {
     'peliculas': 'movie',
     'series': 'tvshow',
-    'personajes': 'character',
 }
 
 
@@ -44,9 +43,9 @@ def _parametros_consulta(request):
 def Catalogo(request):
     """Listado del catalogo con busqueda, filtros y paginacion.
 
-    GET admite: q (texto libre por nombre), tipo (peliculas|series|
-    personajes), fase (nro) y page. Vacia el catálogo muestra un
-    mensaje informativo; con filtros sin resultados, otro mensaje.
+    GET admite: q (texto libre por nombre), tipo (peliculas|series),
+    fase (nro) y page. Vacia el catálogo muestra un mensaje informativo;
+    con filtros sin resultados, otro mensaje.
     """
     elementos = (
         ElementoCatalogo.objects
@@ -96,8 +95,8 @@ def _detalles_extra(elemento):
 
     Extrae del JSON sincronizado SOLO claves verificadas de la API
     (Etapa 2); si la clave no existe o viene vacia, la ficha no se
-    muestra: no se inventan datos. El alias solo aplica a personajes,
-    la duracion a peliculas, y los episodios a series.
+    muestra: no se inventan datos. La duracion aplica a peliculas y los
+    episodios a series.
     """
     json_api = elemento.datos_json or {}
 
@@ -105,7 +104,6 @@ def _detalles_extra(elemento):
         'movie': [('Dirección', 'directed_by'), ('Duración', 'duration')],
         'tvshow': [('Dirección', 'directed_by'), ('Temporadas', 'season'),
                    ('Episodios', 'number_episodes')],
-        'character': [('Alias', 'alias'), ('Interpretado por', 'played_by')],
     }[elemento.tipo]
 
     fichas = []
@@ -116,7 +114,7 @@ def _detalles_extra(elemento):
     return fichas
 
 
-_CONFIGURADO = {'movie', 'tvshow', 'character'}  # tipos del modelo
+_CONFIGURADO = {'movie', 'tvshow'}  # tipos del modelo
 
 
 def _limpio(valor):

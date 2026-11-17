@@ -275,10 +275,6 @@ class MCUAPIClient:
         """GET /tvshows con paginacion."""
         return self._listar('tvshows', page=page, limit=limit, filtros=filtros)
 
-    def obtener_personajes(self, page=1, limit=10, filtros=None):
-        """GET /characters con paginacion."""
-        return self._listar('characters', page=page, limit=limit, filtros=filtros)
-
     def obtener_pelicula(self, mcu_id):
         """GET /movies/{id}."""
         return self._obtener('movies', mcu_id)
@@ -287,21 +283,17 @@ class MCUAPIClient:
         """GET /tvshows/{id}."""
         return self._obtener('tvshows', mcu_id)
 
-    def obtener_personaje(self, mcu_id):
-        """GET /characters/{id}."""
-        return self._obtener('characters', mcu_id)
-
     def buscar(self, termino, tipo=None, page=1, limit=10):
         """GET /search?q= (busqueda tolerante a typos).
 
-        ``tipo`` puede ser 'movie', 'tvshow' o 'character' y unifica con
-        el parametro ``type`` de la API; se ignora fuera de esos valores
-        validos para no generar un 400.
+        ``tipo`` puede ser 'movie' o 'tvshow' y unifica con el parametro
+        ``type`` de la API; se ignora fuera de esos valores validos para
+        no generar un 400.
         """
         if not str(termino or '').strip():
             raise MCUAPIBadRequest('El termino de busqueda no puede ser vacio.')
 
         parametros = {'q': str(termino).strip()}
-        if tipo in ('movie', 'tvshow', 'character'):
+        if tipo in ('movie', 'tvshow'):
             parametros['type'] = tipo
         return self._listar('search', page=page, limit=limit, filtros=parametros)

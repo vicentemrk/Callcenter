@@ -6,9 +6,9 @@ from marvel.constants import TIPOS_ELEMENTO
 class ElementoCatalogo(models.Model):
     """Elemento del universo Marvel sincronizado desde MCU API.
 
-    Representa una pelicula, una serie o un personaje. Los IDs de MCU API
-    son independientes por recurso (movie #1 no es character #1), por lo
-    que la unicidad es compuesta por (tipo, mcu_id).
+    Representa una pelicula o una serie. Los IDs de MCU API son
+    independientes por recurso (movie #1 no es tvshow #1), por lo que la
+    unicidad es compuesta por (tipo, mcu_id).
     """
 
     mcu_id = models.PositiveIntegerField(

@@ -194,6 +194,15 @@ class Preguntas(models.Model):
         blank=True,
         related_name='tickets',
     )
+    tecnico_asignado = models.ForeignKey(
+        'online.Usuario',
+        verbose_name='Tecnico asignado',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tickets_asignados',
+        limit_choices_to={'rol': 'tecnico'},
+    )
 
     def __str__(self):
         return f"{self.idPregunta} - {self.Titulo}"

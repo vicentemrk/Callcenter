@@ -32,10 +32,8 @@
                 <div><dt>Tipo</dt><dd>{{ elemento.get_tipo_display }}</dd></div>
                 <div><dt>Descripción</dt><dd>{% if elemento.descripcion %}{{ elemento.descripcion }}{% else %}Sin dato{% endif %}</dd></div>
                 <div><dt>Fecha de estreno</dt><dd>{% if elemento.fecha_estreno %}{{ elemento.fecha_estreno|date:"d/m/Y" }}{% else %}Sin dato{% endif %}</dd></div>
-                {% if elemento.tipo != 'character' %}
                 <div><dt>Fase del MCU</dt><dd>{% if elemento.fase %}Fase {{ elemento.fase }}{% else %}Sin dato{% endif %}</dd></div>
                 <div><dt>Saga</dt><dd>{% if elemento.saga %}{{ elemento.saga }}{% else %}Sin dato{% endif %}</dd></div>
-                {% endif %}
                 {% for ficha in fichas %}
                 <div><dt>{{ ficha.etiqueta }}</dt><dd>{{ ficha.valor }}</dd></div>
                 {% endfor %}

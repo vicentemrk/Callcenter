@@ -11,7 +11,7 @@
 <div class="MarvelContenedor">
     <header class="MarvelCabecera">
         <h1><i class="fas fa-shield-halved" aria-hidden="true"></i> Catálogo Marvel</h1>
-        <p>Películas, series y personajes del universo Marvel, atendido por el mismo Call Center.</p>
+        <p>Películas y series del universo Marvel, atendido por el mismo Call Center.</p>
     </header>
 
     {# Filtros: se envian por GET; la vista nunca modifica registros. #}
@@ -24,7 +24,6 @@
             <option value="">Todos</option>
             <option value="peliculas" {% if tipo == 'peliculas' %}selected{% endif %}>Películas</option>
             <option value="series" {% if tipo == 'series' %}selected{% endif %}>Series</option>
-            <option value="personajes" {% if tipo == 'personajes' %}selected{% endif %}>Personajes</option>
         </select>
         {% if fases_disponibles %}
         <label class="visually-hidden" for="fase">Filtrar por fase</label>

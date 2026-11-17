@@ -363,8 +363,8 @@ class TicketsConElementoMarvelTests(TestCase):
         )
         self.otro_elemento = ElementoCatalogo.objects.create(
             mcu_id=250,
-            tipo='character',
-            nombre='Batman',
+            tipo='tvshow',
+            nombre='Loki',
             activo=True,
         )
         self.question_anterior = Preguntas.objects.create(
@@ -387,7 +387,7 @@ class TicketsConElementoMarvelTests(TestCase):
     def _datos_ticket(self):
         return {
             'Titulo': 'Ticket con Marvel',
-            'Pregunta': 'El personaje tiene un error de descripcion',
+            'Pregunta': 'La serie tiene un error de descripcion',
             'Usuario': self.dueño.id,
             'Fecha_creacion': timezone.now().isoformat(),
         }
@@ -499,7 +499,7 @@ class TicketsConElementoMarvelTests(TestCase):
 
         contenido = response.content.decode('utf-8')
         self.assertIn('Pelicula: Superman', contenido)
-        self.assertIn('Personaje: Batman', contenido)
+        self.assertIn('Serie: Loki', contenido)
         self.assertIn('Sin elemento Marvel', contenido)
 
     @patch('online.views.AsistenteIA')
@@ -575,12 +575,12 @@ class VinculoMarvelC13Tests(TestCase):
         self.otro_elemento = ElementoCatalogo.objects.create(
             mcu_id=301,
             tipo='tvshow',
-            nombre='Batman: la serie',
+            nombre='Loki',
             activo=True,
         )
         self.question = Preguntas.objects.create(
             Titulo='Consulta con Marvel',
-            Pregunta='Error en la ficha del personaje',
+            Pregunta='Error en la ficha de la serie',
             Fecha_creacion=timezone.now(),
             Usuario=self.dueño,
             elemento_catalogo=self.elemento,
@@ -702,7 +702,7 @@ class VinculoMarvelC13Tests(TestCase):
         ).first()
         self.assertIsNotNone(auditoria)
         self.assertIn('Pelicula: Superman', auditoria.detalle)
-        self.assertIn('Serie: Batman: la serie', auditoria.detalle)
+        self.assertIn('Serie: Loki', auditoria.detalle)
         self.assertIn('->', auditoria.detalle)
         self.assertEqual(auditoria.usuario_id, self.admin.id)
 

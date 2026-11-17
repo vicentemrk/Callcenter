@@ -5,14 +5,16 @@ Sintaxis definitiva (documentada tambien en cambios_marvel.txt):
     python manage.py sincronizar_mcu                          # todos los tipos, sin limite
     python manage.py sincronizar_mcu --tipo movie --limite 10
     python manage.py sincronizar_mcu --tipo tvshow --limite 10
-    python manage.py sincronizar_mcu --tipo character --limite 10
     python manage.py sincronizar_mcu --tipo todos --limite 10 --pagina 10
 
-- --tipo: movie | tvshow | character | todos (por defecto: todos).
+- --tipo: movie | tvshow | todos (por defecto: todos).
 - --limite: cantidad maxima de registros a procesar POR TIPO. Sin limite
   el comando recorre TODAS las paginas del tipo (sincronizacion completa).
 - --pagina: tamanio de pagina pedida a la API (1-100; la API rechaza
   limites mayores que 100 con un 400).
+
+Solo se sincronizan peliculas y series: los personajes se retiraron del
+catalogo (ver cambios_marvel.txt, 2026-11-16).
 
 La sincronizacion es idempotente por (tipo, mcu_id): repetir el comando
 no duplica ni re-graba registros sin cambios, y NUNCA elimina elementos.
@@ -27,12 +29,12 @@ from marvel.mcu_client import (
 from marvel import services
 from marvel.constants import TIPOS_ELEMENTO
 
-TIPOS_VALIDOS = ('movie', 'tvshow', 'character')
+TIPOS_VALIDOS = ('movie', 'tvshow')
 
 
 class Command(BaseCommand):
     help = (
-        'Sincroniza el catalogo Marvel (peliculas, series y personajes) '
+        'Sincroniza el catalogo Marvel (peliculas y series) '
         'desde MCU API hacia la tabla local marvel_elementocatalogo. '
         'Idempotente: repetirlo no duplica registros.'
     )
@@ -42,7 +44,7 @@ class Command(BaseCommand):
             '--tipo',
             choices=TIPOS_VALIDOS + ('todos',),
             default='todos',
-            help="Tipo a sincronizar: movie | tvshow | character | todos.",
+            help="Tipo a sincronizar: movie | tvshow | todos.",
         )
         parser.add_argument(
             '--limite',

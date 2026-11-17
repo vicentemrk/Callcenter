@@ -27,7 +27,6 @@ logger = logging.getLogger('marvel')
 METODOS_API = {
     'movie': 'obtener_peliculas',
     'tvshow': 'obtener_series',
-    'character': 'obtener_personajes',
 }
 
 # Estados posibles de guardar_elemento, reportados por el comando.
@@ -68,7 +67,7 @@ def _fecha(valor):
 
 
 def _fase(valor):
-    """Convierte la fase a entero no negativo, o None (characters no tienen)."""
+    """Convierte la fase a entero no negativo, o None si no viene dato."""
     if valor is None:
         return None
     try:
@@ -82,26 +81,22 @@ def _fase(valor):
 def mapear_elemento(tipo, registro):
     """Traduce un registro JSON de la API a campos de ElementoCatalogo.
 
-    Claves distintas por tipo (verificado en Etapa 2 con responses reales):
-    - movie/tvshow: title, overview, cover_url, release_date, phase, saga.
-    - character: name, description, image_url (sin fecha/fase/saga).
-    Los campos ausentes o nulos quedan en None; el JSON original se
-    conserva entero en datos_json para no perder informacion.
+    El catalogo solo alimenta peliculas y series, con las mismas claves
+    (verificado en Etapa 2 con responses reales): title, overview,
+    cover_url, release_date, phase, saga. Los campos ausentes o nulos
+    quedan en None; el JSON original se conserva entero en datos_json
+    para no perder informacion.
+
+    ``tipo`` se mantiene en la firma por compatibilidad con
+    guardar_elemento y las pruebas; el mapeo es el mismo para movie y
+    tvshow.
     """
-    if tipo == 'character':
-        nombre = _texto(registro.get('name'))
-        descripcion = _texto(registro.get('description'))
-        imagen = _texto(registro.get('image_url'))
-        fecha_estreno = None
-        fase = None
-        saga = None
-    else:
-        nombre = _texto(registro.get('title'))
-        descripcion = _texto(registro.get('overview'))
-        imagen = _texto(registro.get('cover_url'))
-        fecha_estreno = _fecha(registro.get('release_date'))
-        fase = _fase(registro.get('phase'))
-        saga = _texto(registro.get('saga'))
+    nombre = _texto(registro.get('title'))
+    descripcion = _texto(registro.get('overview'))
+    imagen = _texto(registro.get('cover_url'))
+    fecha_estreno = _fecha(registro.get('release_date'))
+    fase = _fase(registro.get('phase'))
+    saga = _texto(registro.get('saga'))
 
     return {
         'mcu_id': registro.get('id'),

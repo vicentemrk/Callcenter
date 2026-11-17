@@ -1011,3 +1011,103 @@ detenido antes de C1 (relacion tickets <-> catalogo, FK nullable).
    - Pendientes: ninguno bloqueante. Desactivacion automatica de
      elementos ausentes de la API sigue NO implementada (fuera de
      alcance, requiere autorizacion).
+
+============================================================================
+2026-11-16 - LIMPIEZA DE BACKUPS DE BASE DE DATOS
+============================================================================
+
+## Motivo:
+   - La carpeta del proyecto acumulaba 4 copias de la base de fases ya
+     superadas. Solo se conserva la base real (db.sqlite3).
+
+## Comprobaciones previas (antes de mover nada):
+   - Los 4 backups estaban ignorados por git (nunca versionados) y ningun
+     archivo de codigo, plantilla o script los referencia; solo los
+     menciona esta bitacora como historia.
+   - PRAGMA integrity_check sobre db.sqlite3 y los 4 backups: ok.
+   - Contenido comparado: bak-faseB1 (3 usuarios, 0 elementos),
+     bak-faseB3 (3 usuarios, 0 elementos), bak-faseC1 y bak-sync-completa
+     (4 usuarios, 30 elementos). La base actual tiene 4 usuarios y 506
+     elementos: todos los backups son estados anteriores ya superados.
+
+## Accion:
+   - Movidos (no borrados) a
+     C:\Users\mirk\AppData\Local\Temp\opencode\backups_db_archivados_20261116\
+     db.sqlite3.bak-faseB1, db.sqlite3.bak-faseB3,
+     db.sqlite3.bak-faseC1, db.sqlite3.bak-sync-completa.
+   - Queda en el proyecto unicamente db.sqlite3.
+   - .gitignore ampliado con *.bak-* para que estas copias no vuelvan a
+     aparecer como pendientes si se crean de nuevo.
+
+## Verificacion:
+   - Get-ChildItem *.sqlite3* -> solo db.sqlite3.
+   - python manage.py check -> System check identified no issues.
+
+============================================================================
+2026-11-16 - BLOQUE 1: PERSONAJES FUERA DEL CATALOGO + TECNICO ASIGNADO
+============================================================================
+
+## Decision de alcance:
+   - La plataforma de peliculas es la app propia "marvel" (fuente
+     augustomarcelo/mcuapi), no una entrega del docente.
+   - El catalogo respalda tickets del Call Center, asi que solo mantiene
+     peliculas y series. Los personajes quedan solo como seccion VISUAL en
+     la landing Marvel (sin fichas, sin enlaces, sin actores).
+
+## Codigo modificado (personajes):
+   - marvel/constants.py: TIPOS_ELEMENTO queda en movie y tvshow.
+   - marvel/models.py: docstring del modelo (la constraint (tipo, mcu_id)
+     se mantiene porque la API reusa ids entre recursos).
+   - marvel/mcu_client.py: se eliminan obtener_personajes,
+     obtener_personaje y la rama 'character' de buscar().
+   - marvel/services.py: se quita 'character' de METODOS_API; mapear_elemento
+     deja de tener rama de personaje (un registro de personaje ya no tiene
+     'title' y termina como ESTADO_INCOMPLETO).
+   - marvel/management/commands/sincronizar_mcu.py: --tipo ya no acepta
+     character; docstring y ayuda actualizados.
+   - marvel/views.py: sin 'personajes' en TIPOS_DE_URL, sin character en
+     _CONFIGURADO ni en _detalles_extra.
+   - marvel/templates/marvel/catalogo.html: sin opcion Personajes y texto de
+     cabecera "Peliculas y series".
+   - marvel/templates/marvel/detalle.html: se quita el condicional de
+     personaje; Fase y Saga se muestran siempre.
+   - marvel/static/catalogo.css: se eliminan .MarvelTipo-character (claro y
+     oscuro).
+
+## Base de datos:
+   - Backup previo: Temp/opencode/backup_bloque1_20261116/db.sqlite3.
+   - Antes del borrado: 75 movie + 56 tvshow + 375 character = 506.
+   - Tickets que referenciaban un personaje: 0 (verificado, SET_NULL sin
+     efecto sobre datos).
+   - Borrado: ElementoCatalogo.objects.filter(tipo='character').delete()
+     -> (375, {'marvel.ElementoCatalogo': 375}).
+   - Despues: 131 elementos (75 peliculas + 56 series), 0 personajes.
+
+## Modelo de datos:
+   - Preguntas.tecnico_asignado: FK a online.Usuario, null y blank,
+     on_delete=SET_NULL, related_name='tickets_asignados',
+     limit_choices_to={'rol': 'tecnico'}. Sin fecha_resolucion (descartada
+     a proposito).
+   - Nota tecnica: el campo usa la cadena 'online.Usuario' porque dentro del
+     cuerpo de Preguntas el nombre Usuario ya esta tomado por el FK al autor
+     y provoca TypeError si se pasa la clase.
+   - Migraciones nuevas y APLICADAS:
+     marvel.0002_alter_elementocatalogo_tipo
+     online.0010_preguntas_tecnico_asignado
+
+## Pruebas adaptadas:
+   - marvel/tests.py: el simulador ya no define obtener_personajes;
+     test_mapear_personaje_sin_fechas pasa a
+     test_mapear_registro_de_personaje_queda_incompleto (verifica que el
+     registro se descarta); unicidad compuesta se prueba con movie+tvshow;
+     filtro por tipo se prueba con peliculas/series y se comprueba que
+     ?tipo=personajes se ignora.
+   - online/tests.py: fixtures Batman/character -> Loki/tvshow; etiqueta
+     esperada "Serie: Loki"; textos de pregunta ya no mencionan personaje.
+
+## Verificacion:
+   - python manage.py check -> System check identified no issues.
+   - python manage.py makemigrations --check --dry-run -> No changes detected.
+   - python manage.py test -> Ran 116 tests ... OK.
+   - Pendiente no verificable desde el agente: revision visual del carrusel
+     y de las plantillas en navegador (anotado en cosasquehacer.txt).
