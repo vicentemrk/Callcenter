@@ -42,7 +42,11 @@ como referencia de alcance.
 ## HECHO
 [x] Carrusel del chat con imagenes Marvel (GatoMarvel_1..6.webp); se borraron
     Gato_1..6.webp. Flechas dentro del marco, sin puntos, fotos cuadradas.
-[x] Bloque 0 - verificacion: manage.py check sin issues y 116 tests OK.
+[x] Bloque 0 - verificacion: manage.py check sin issues.
+[x] Suite de pruebas recortada de 116 a 31 tests (20 s en vez de 85 s):
+    11 online + 9 administracion + 11 marvel. Se conservo un test por
+    comportamiento critico y se borraron duplicados y detalles de
+    implementacion (paginacion, formato de duracion, textos, etc.).
 [x] Bloque 1 - personajes fuera del catalogo:
     - Codigo: constants, models (docstring), mcu_client (sin /characters),
       services (METODOS_API y mapeo), sincronizar_mcu (--tipo sin character),
@@ -51,7 +55,7 @@ como referencia de alcance.
     - Base: 375 personajes borrados. Catalogo: 75 peliculas + 56 series = 131.
       Antes de borrar se verifico que 0 tickets los referenciaban.
     - Tests: marvel/tests.py y online/tests.py adaptados (Batman/Tony Stark
-      -> Loki). La suite sigue en 116 tests OK.
+      -> Loki). La suite queda verde con 31 tests.
 [x] Bloque 1 - campo tecnico_asignado en Preguntas (FK a Usuario, rol tecnico,
     null, SET_NULL, related_name tickets_asignados) + migracion
     online.0010_preguntas_tecnico_asignado (APLICADA).

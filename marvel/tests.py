@@ -96,23 +96,6 @@ class PruebaMapeo(TestCase):
             'saga': 'Infinity Saga',
         })
 
-    def test_mapear_serie_con_nulos(self):
-        """Los nulos de la API (overview/cover_url/phase/saga) quedan None."""
-        registro = {
-            'id': 34,
-            'title': 'Iron Fist',
-            'overview': None,
-            'cover_url': None,
-            'release_date': '2018-09-07',
-            'phase': None,
-            'saga': None,
-        }
-        datos = services.mapear_elemento('tvshow', registro)
-        self.assertIsNone(datos['descripcion'])
-        self.assertIsNone(datos['imagen'])
-        self.assertIsNone(datos['fase'])
-        self.assertEqual(datos['fecha_estreno'], date(2018, 9, 7))
-
     def test_mapear_registro_de_personaje_queda_incompleto(self):
         """Un registro de personaje ya no entra: no tiene 'title' y se descarta."""
         registro = {
@@ -163,40 +146,6 @@ class PruebaGuardarElemento(TestCase):
         services.guardar_elemento('movie', self.registro(), services._ahora())
         self.assertEqual(registrados.first().sincronizado_en, fecha_guardada)
 
-    def test_actualiza_si_cambia_el_contenido(self):
-        services.guardar_elemento('movie', self.registro(), services._ahora())
-        modificado = {**self.registro(), 'title': 'Iron Man (remasterizado)'}
-
-        estado = services.guardar_elemento('movie', modificado, services._ahora())
-        guardado = ElementoCatalogo.objects.get(tipo='movie', mcu_id=1)
-
-        self.assertEqual(estado, services.ESTADO_ACTUALIZADO)
-        self.assertEqual(guardado.nombre, 'Iron Man (remasterizado)')
-        self.assertEqual(guardado.datos_json, modificado)
-        self.assertEqual(ElementoCatalogo.objects.count(), 1)
-
-    def test_sin_id_no_se_guarda(self):
-        estado = services.guardar_elemento('movie', {'title': 'Sin id'}, services._ahora())
-        self.assertEqual(estado, services.ESTADO_INCOMPLETO)
-        self.assertEqual(ElementoCatalogo.objects.count(), 0)
-
-    def test_sin_nombre_no_se_guarda(self):
-        estado = services.guardar_elemento('movie', {'id': 9}, services._ahora())
-        self.assertEqual(estado, services.ESTADO_INCOMPLETO)
-        self.assertEqual(ElementoCatalogo.objects.count(), 0)
-
-    def test_unicidad_compuesta_tipo_mcu_id(self):
-        """El mismo mcu_id puede existir en tipos distintos (la API reusa ids)."""
-        services.guardar_elemento('movie', self.registro(), services._ahora())
-        services.guardar_elemento(
-            'tvshow',
-            {'id': 1, 'title': 'Loki', 'overview': None, 'cover_url': None},
-            services._ahora(),
-        )
-        self.assertEqual(ElementoCatalogo.objects.count(), 2)
-        self.assertEqual(ElementoCatalogo.objects.filter(mcu_id=1).count(), 2)
-
-
 class PruebaSincronizarTipo(TestCase):
     """sincronizar_tipo: paginacion, limite e idempotencia al repetir."""
 
@@ -223,29 +172,6 @@ class PruebaSincronizarTipo(TestCase):
         })
         self.assertEqual(ElementoCatalogo.objects.filter(tipo='movie').count(), 4)
 
-    def test_respeta_el_limite(self):
-        # La pagina trae 4 registros; el limite 3 debe cortar el proceso.
-        cliente = self.cliente([
-            envelope([registro_pelicula(i, f'Titulo {i}') for i in range(1, 5)], total=8),
-        ])
-        stats = services.sincronizar_tipo('movie', limite=3, cliente=cliente)
-
-        self.assertTrue(stats['acotado'])
-        self.assertEqual(stats['procesados'], 3)
-        self.assertEqual(stats['creados'], 3)
-        self.assertEqual(ElementoCatalogo.objects.count(), 3)
-
-    def test_pagina_siguiente_se_procesa(self):
-        cliente = self.cliente([
-            envelope([registro_pelicula(1, 'A'), registro_pelicula(2, 'B')], con_next=True),
-            envelope([registro_pelicula(3, 'C'), registro_pelicula(4, 'D')]),
-        ])
-        stats = services.sincronizar_tipo('movie', cliente=cliente)
-
-        self.assertEqual(stats['paginas'], 2)
-        self.assertEqual(stats['creados'], 4)
-        self.assertIn(('obtener_peliculas', 2, 10), cliente.llamadas)
-
     def test_repetir_no_duplica(self):
         registros = [registro_pelicula(i, f'Titulo {i}') for i in range(1, 5)]
         cliente = self.cliente([envelope(registros, total=8, con_next=True),
@@ -262,15 +188,6 @@ class PruebaSincronizarTipo(TestCase):
         # no debe dejar el ciclo girando indefinidamente.
         self.assertEqual(ElementoCatalogo.objects.count(), 4)
 
-    def test_errores_de_api_se_propagan(self):
-        cliente = ClienteSimulado({'obtener_peliculas': []})
-
-        # Sin paginas simuladas la API simulada lanza; el servicio no
-        # debe tragarse el error (el comando lo atrapa y reporta).
-        with self.assertRaises(MCUAPIInvalidResponse):
-            services.sincronizar_tipo('movie', cliente=cliente)
-
-
 class PruebaCatalogoVistas(TestCase):
     """Vistas del catalogo visual (Fase B4), siempre contra la base local."""
 
@@ -286,10 +203,6 @@ class PruebaCatalogoVistas(TestCase):
             descripcion=descripcion,
             datos_json={'id': mcu_id, 'type': tipo},
         )
-
-    def test_rutas_sin_conflicto(self):
-        self.assertEqual(reverse('marvel:catalogo'), '/marvel/')
-        self.assertEqual(reverse('marvel:detalle', args=[1]), '/marvel/1/')
 
     def test_catalogo_publico_sin_login(self):
         respuesta = self.client.get('/marvel/')
@@ -317,67 +230,6 @@ class PruebaCatalogoVistas(TestCase):
         self.assertEqual(set(nombres), {'Iron Man', 'Iron Man 2'})
         self.assertEqual(respuesta.context['total_resultados'], 2)
 
-    def test_filtro_por_tipo(self):
-        self.crear('movie', 1, 'Iron Man')
-        self.crear('tvshow', 1, 'WandaVision')
-
-        respuesta = self.client.get('/marvel/', {'tipo': 'peliculas'})
-        nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
-        self.assertEqual(nombres, ['Iron Man'])
-
-        respuesta = self.client.get('/marvel/', {'tipo': 'series'})
-        nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
-        self.assertEqual(nombres, ['WandaVision'])
-
-        # El filtro de personajes ya no existe: se ignora y devuelve todo.
-        respuesta = self.client.get('/marvel/', {'tipo': 'personajes'})
-        nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
-        self.assertEqual(set(nombres), {'Iron Man', 'WandaVision'})
-
-    def test_filtro_por_fase(self):
-        self.crear('movie', 1, 'Iron Man', fase=1)
-        self.crear('movie', 2, 'Iron Man 3', fase=2)
-
-        respuesta = self.client.get('/marvel/', {'fase': '2'})
-        nombres = [e.nombre for e in respuesta.context['pagina'].object_list]
-        self.assertEqual(nombres, ['Iron Man 3'])
-
-    def test_filtros_invalidos_no_rompen(self):
-        self.crear('movie', 1, 'Iron Man')
-        for query in ({'tipo': 'otra-cosa'}, {'fase': 'abc'}, {'page': 'xxx'}):
-            respuesta = self.client.get('/marvel/', query)
-            self.assertEqual(respuesta.status_code, 200)
-
-    def test_paginacion_estandar(self):
-        for i in range(1, 14):  # 13 elementos -> pagina 1 llena + pagina 2
-            self.crear('movie', i, f'Pelicula {i}')
-
-        respuesta_1 = self.client.get('/marvel/', {'page': 1})
-        self.assertEqual(len(respuesta_1.context['pagina'].object_list), 12)
-
-        respuesta_2 = self.client.get('/marvel/', {'page': 2})
-        self.assertEqual(len(respuesta_2.context['pagina'].object_list), 1)
-
-    def test_paginacion_conserva_filtros(self):
-        for i in range(1, 14):
-            self.crear('movie', i, f'Pelicula {i}')
-        respuesta = self.client.get('/marvel/', {'q': 'Pelicula', 'page': 2})
-        parametros = respuesta.context['parametros']
-        self.assertIn('q=Pelicula', parametros)
-        self.assertNotIn('page', parametros)
-
-    def test_catalogo_vacio_mensaje(self):
-        respuesta = self.client.get('/marvel/')
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertFalse(respuesta.context['hay_catalogo'])
-        self.assertContains(respuesta, 'todavía está vacío')
-
-    def test_filtros_sin_resultados_mensaje(self):
-        self.crear('movie', 1, 'Iron Man')
-        respuesta = self.client.get('/marvel/', {'q': 'algo-que-no-existex'})
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, 'No hay resultados')
-
     def test_detalle_completo(self):
         elemento = self.crear(
             'movie', 1, 'Iron Man',
@@ -396,13 +248,6 @@ class PruebaCatalogoVistas(TestCase):
         guardado.save()
         respuesta = self.client.get(f'/marvel/{elemento.pk}/')
         self.assertContains(respuesta, '126')
-
-    def test_detalle_con_nulos_y_sin_imagen(self):
-        elemento = self.crear('movie', 99, 'Serie sin datos')
-        respuesta = self.client.get(f'/marvel/{elemento.pk}/')
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, 'Sin dato')
-        self.assertContains(respuesta, 'MarvelDetalle-sinimagen')
 
     def test_detalle_inexistente_y_no_activo(self):
         respuesta = self.client.get('/marvel/7777/')
@@ -462,83 +307,3 @@ class ConsultaDesdeFichaTests(TestCase):
             contenido,
         )
 
-    def test_url_del_boton_usa_la_ruta_real_de_tickets(self):
-        self.client.force_login(self.cliente)
-
-        respuesta = self.client.get(f'/marvel/{self.elemento.pk}/')
-
-        contenido = respuesta.content.decode('utf-8')
-        self.assertIn(
-            f'/Inicio/{self.cliente.id}/?elemento={self.elemento.pk}',
-            contenido,
-        )
-
-    def test_boton_deriva_en_formulario_con_preseleccion(self):
-        self.client.force_login(self.cliente)
-
-        destino = self._ruta_inicio_con_elemento(self.cliente, self.elemento)
-        respuesta = self.client.get(destino)
-
-        self.assertEqual(respuesta.status_code, 200)
-        contenido = respuesta.content.decode('utf-8')
-        self.assertIn(
-            f'<option value="{self.elemento.pk}" selected>',
-            contenido,
-        )
-        self.assertIn('Pelicula: Superman', contenido)
-
-    def test_visitante_ve_enlace_de_login_y_no_el_de_tickets(self):
-        respuesta = self.client.get(f'/marvel/{self.elemento.pk}/')
-
-        self.assertEqual(respuesta.status_code, 200)
-        contenido = respuesta.content.decode('utf-8')
-        self.assertIn('Inicia sesión para crear una consulta', contenido)
-        self.assertIn(reverse('Login'), contenido)
-        self.assertNotIn('Crear consulta sobre este elemento', contenido)
-
-    def test_tecnico_y_admin_no_ven_el_boton_de_creacion(self):
-        for usuario in (self.tecnico, self.admin):
-            with self.subTest(rol=usuario.rol):
-                self.client.force_login(usuario)
-                respuesta = self.client.get(
-                    f'/marvel/{self.elemento.pk}/'
-                )
-                self.assertEqual(respuesta.status_code, 200)
-                self.assertNotContains(
-                    respuesta,
-                    'Crear consulta sobre este elemento',
-                )
-
-    def test_elemento_inactivo_no_ofrece_consulta(self):
-        self.elemento.activo = False
-        self.elemento.save()
-
-        respuesta = self.client.get(f'/marvel/{self.elemento.pk}/')
-
-        self.assertEqual(respuesta.status_code, 404)
-        self.assertNotIn(
-            'Crear consulta sobre este elemento',
-            respuesta.content.decode('utf-8'),
-        )
-
-    def test_elemento_inexistente_responde_404(self):
-        respuesta = self.client.get('/marvel/999999/')
-
-        self.assertEqual(respuesta.status_code, 404)
-
-    def test_cliente_con_tickets_sin_elemento_sigue_viendo_el_boton(self):
-        from online.models import Preguntas
-        from django.utils import timezone
-
-        Preguntas.objects.create(
-            Titulo='Consulta sin Marvel',
-            Pregunta='No carga el juego',
-            Fecha_creacion=timezone.now(),
-            Usuario=self.cliente,
-        )
-        self.client.force_login(self.cliente)
-
-        respuesta = self.client.get(f'/marvel/{self.elemento.pk}/')
-
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, 'Crear consulta sobre este elemento')

@@ -1111,3 +1111,49 @@ detenido antes de C1 (relacion tickets <-> catalogo, FK nullable).
    - python manage.py test -> Ran 116 tests ... OK.
    - Pendiente no verificable desde el agente: revision visual del carrusel
      y de las plantillas en navegador (anotado en cosasquehacer.txt).
+
+============================================================================
+2026-11-16 - RECORTE DE LA SUITE DE PRUEBAS (116 -> 31)
+============================================================================
+
+## Motivo:
+   - Pedido explicito: la suite era desproporcionada para el alcance y el
+     tiempo disponible. Se deja un test por comportamiento critico.
+
+## Resultado:
+   - online/tests.py:        42 -> 11
+   - administracion/tests.py: 39 -> 9
+   - marvel/tests.py:        35 -> 11
+   - Total: 116 -> 31 tests. Tiempo de ejecucion: 85 s -> 20 s.
+   - Se eliminaron tambien los imports que quedaron sin uso.
+
+## Que se conserva (cobertura minima):
+   - Permisos y seguridad: cliente no ve conversacion ajena ni ticket ajeno
+     (?id manipulado), admin y tecnico si pueden ver, respuestas usan el id
+     de la URL y no el campo oculto, usuario inactivo no puede entrar.
+   - Admin: borrado de preguntas y usuarios solo por POST y sin auto-borrado,
+     no desactivarse a si mismo, tecnico sin acceso a analytics, panel
+     renderiza con datos y escapa HTML, no se puede eliminar ni degradar al
+     ultimo administrador activo.
+   - IA: fallo del servicio devuelve 'otros' sin exponer el error al usuario.
+   - Tickets: crear con elemento activo, rechazar elemento inactivo, el
+     elemento se ve en la conversacion.
+   - Catalogo: mapeo de pelicula, registro de personaje descartado, guardado
+     idempotente, sincronizacion completa y sin duplicados, catalogo publico
+     sin login, solo activos, busqueda, detalle completo y 404.
+   - Integracion ficha -> ticket: boton visible para cliente autenticado.
+   - Index anonimo responde 200.
+
+## Que deja de estar cubierto (riesgo asumido):
+   - Paginacion y busqueda del panel, periodos de analytics, calculo de
+     tiempo promedio de respuesta, formato de duracion.
+   - Colores/etiquetas y textos exactos (orden de listados, badges).
+   - Detalles de auditoria de cambios de elemento y de formularios.
+   - Configuracion del cliente HTTP de la IA (base_url, timeout).
+   - Si en los bloques 2-6 aparece un fallo en estas areas, se cubre con un
+     test puntual en ese momento.
+
+## Verificacion:
+   - python manage.py test -> Ran 31 tests ... OK.
+   - python manage.py check -> System check identified no issues.
+   - python manage.py makemigrations --check --dry-run -> No changes detected.
