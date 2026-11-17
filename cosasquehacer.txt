@@ -1,0 +1,33 @@
+-* Reestructurar el call center gamer *-
+
+1- Tematica total sobre Marvel - predomina la combinacion de colores de Negro y Rojo, un rojo intenso fuerte, adaptar el diseño y los elementos visuales (colores, fuentes, iconos) para reflejar la identidad corporativa.
+
+2- Las preguntas ya no seran de hardware pasaran a ser sobre Merchandising, Peliculas, Comics, Muñecos o Juguetes, Juegos y Eventos.
+
+3- Implementar funciones adicionales, como un sistema de reseñas de usuarios que integre referencias temáticas
+
+4- Footer cambiarlo de manera total su funcionamiento, dejarlo literalmente abajo del todo en vez del actual que sigue la pantalla del usuario.
+
+5- 2 LandingPages, una sobre el callcentergamer la cual sera la principal dando a conocer el servicio etc, con imagenes de los personajes, peliculas, etc. La otra sera sobre la tematica de marvel.0
+
+6- Plataforma de Películas
+Descripción
+Crear Aplicación que muestra un catálogo de películas, permitiendo a los usuarios buscar, filtrar y visualizar detalles de cada título. Esta será entregada por su docente.
+Tareas Específicas
+1.	Personalizar el catálogo de películas según el tema asignado.
+2.	Adaptar el diseño y los elementos visuales (colores, fuentes, iconos) para reflejar la identidad corporativa.
+3.	Implementar funciones adicionales, como un sistema de reseñas de usuarios que integre referencias temáticas.
+Sistema de Call Center
+Descripción
+Aplicación que simula un entorno de atención al cliente, donde los agentes gestionan consultas, quejas o solicitudes de usuarios. Esta fue trabajada en la Parte 1 de la Evaluación 3.
+Tareas Específicas
+1.	Adaptar las consultas y respuestas automáticas al contexto del tema asignado.
+2.	Personalizar los perfiles de clientes para reflejar usuarios potenciales del tema.
+3.	Implementar un historial de interacciones que registre consultas relacionadas con el catálogo de películas de la primera aplicación.
+ 
+Integración entre Proyectos
+•	Establecer una conexión funcional entre ambas aplicaciones, de modo que las películas disponibles en la plataforma generen consultas o tickets en el call center.
+•	Ejemplo de implementación:
+•	Un cliente contacta al call center para preguntar sobre la disponibilidad de una película en la plataforma. El sistema debe permitir acceder directamente a la ficha de la película desde el ticket de atención.
+
+7- Informe de Modificaciones: Descripción de los cambios realizados en cada aplicación y cómo se relacionan entre sí.

@@ -1,7 +1,7 @@
 {% extends "componentes/header.html" %}
 {% load static %}
 {% block links %}
-<link rel="stylesheet" href="{% static 'respuestas.css' %}?v=20261026-chat2">
+<link rel="stylesheet" href="{% static 'respuestas.css' %}?v=20261116-carrusel1">
 {% endblock %}
 
 {% block title %}Respuestas{% endblock %}
@@ -70,6 +70,22 @@
                 <dt>Categoría</dt>
                 <dd>{{ Pregunta.get_categoria_display }}</dd>
             </div>
+            {% if Pregunta.elemento_catalogo %}
+            <div class="chat-info-fila">
+                <dt>Elemento Marvel</dt>
+                <dd>
+                    {% if Pregunta.elemento_catalogo.activo %}
+                    <a class="chat-marvel-enlace" href="{% url 'marvel:detalle' Pregunta.elemento_catalogo.pk %}">
+                        {{ Pregunta.elemento_catalogo.get_tipo_display }}: {{ Pregunta.elemento_catalogo.nombre }}
+                    </a>
+                    {% else %}
+                    <span class="chat-marvel-inactivo">
+                        {{ Pregunta.elemento_catalogo.get_tipo_display }}: {{ Pregunta.elemento_catalogo.nombre }} (inactivo)
+                    </span>
+                    {% endif %}
+                </dd>
+            </div>
+            {% endif %}
             <div class="chat-info-fila">
                 <dt>Estado</dt>
                 <dd><span class="admin-badge admin-badge-{{ Pregunta.estado }}">{{ Pregunta.get_estado_display }}</span></dd>
@@ -84,53 +100,46 @@
             </div>
         </dl>
     </div>
-    {# Textos alternativos provisionales: el carrusel es decorativo, se acortan para no competir con el ticket. #}
+    {# Carrusel decorativo: imagenes cuadradas, sin puntos. Las flechas viven
+       dentro del marco (superpuestas a la foto) y se ocultan en los extremos. #}
     <div class="divFondo">
         <div class="gatos-carrusel" data-carrusel-gatos>
             <ul class="gatos-slides" id="gatos-slides">
                 <li class="gato-slide">
-                    <img src="{% static 'img/Gato_1.webp' %}" alt="Gato 1 de 6 del carrusel"
-                         width="728" height="455" decoding="async">
+                    <img src="{% static 'img/GatoMarvel_1.webp' %}"
+                         alt="Gato disfrazado de Loki, con casco dorado y capa verde"
+                         width="447" height="447" decoding="async">
                 </li>
                 <li class="gato-slide">
-                    <img src="{% static 'img/Gato_2.webp' %}" alt="Gato 2 de 6 del carrusel"
-                         width="740" height="493" loading="lazy" decoding="async">
+                    <img src="{% static 'img/GatoMarvel_2.webp' %}"
+                         alt="Gato con el traje de Spider-Man y las garras abiertas"
+                         width="736" height="736" loading="lazy" decoding="async">
                 </li>
                 <li class="gato-slide">
-                    <img src="{% static 'img/Gato_3.webp' %}" alt="Gato 3 de 6 del carrusel"
-                         width="728" height="410" loading="lazy" decoding="async">
+                    <img src="{% static 'img/GatoMarvel_3.webp' %}"
+                         alt="Gato con casco y capa de Thor"
+                         width="700" height="700" loading="lazy" decoding="async">
                 </li>
                 <li class="gato-slide">
-                    <img src="{% static 'img/Gato_4.webp' %}" alt="Gato 4 de 6 del carrusel"
-                         width="678" height="452" loading="lazy" decoding="async">
+                    <img src="{% static 'img/GatoMarvel_4.webp' %}"
+                         alt="Gato tumbado con el traje de Deadpool junto a un comic"
+                         width="554" height="554" loading="lazy" decoding="async">
                 </li>
                 <li class="gato-slide">
-                    <img src="{% static 'img/Gato_5.webp' %}" alt="Gato 5 de 6 del carrusel"
-                         width="740" height="494" loading="lazy" decoding="async">
+                    <img src="{% static 'img/GatoMarvel_5.webp' %}"
+                         alt="Gato con el casco y el traje de Black Panther"
+                         width="1024" height="1024" loading="lazy" decoding="async">
                 </li>
                 <li class="gato-slide">
-                    <img src="{% static 'img/Gato_6.webp' %}" alt="Gato 6 de 6 del carrusel"
-                         width="740" height="493" loading="lazy" decoding="async">
+                    <img src="{% static 'img/GatoMarvel_6.webp' %}"
+                         alt="Gato con armadura dorada y negra sosteniendo una lanza"
+                         width="637" height="637" loading="lazy" decoding="async">
                 </li>
             </ul>
             <div class="gatos-controles" hidden>
                 <button type="button" class="gatos-flecha" data-gatos-dir="-1"
                         aria-label="Imagen anterior" aria-controls="gatos-slides"
                         aria-disabled="true" disabled>&#8249;</button>
-                <div class="gatos-puntos" role="tablist" aria-label="Seleccionar imagen">
-                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 1"
-                            aria-controls="gatos-slides" aria-current="true" aria-selected="true"></button>
-                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 2"
-                            aria-controls="gatos-slides" aria-selected="false"></button>
-                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 3"
-                            aria-controls="gatos-slides" aria-selected="false"></button>
-                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 4"
-                            aria-controls="gatos-slides" aria-selected="false"></button>
-                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 5"
-                            aria-controls="gatos-slides" aria-selected="false"></button>
-                    <button type="button" class="gatos-punto" role="tab" aria-label="Seleccionar imagen 6"
-                            aria-controls="gatos-slides" aria-selected="false"></button>
-                </div>
                 <button type="button" class="gatos-flecha" data-gatos-dir="1"
                         aria-label="Imagen siguiente" aria-controls="gatos-slides"
                         aria-disabled="false">&#8250;</button>
@@ -182,13 +191,17 @@
         var controles = carrusel.querySelector('.gatos-controles');
         var anterior = carrusel.querySelector('[data-gatos-dir="-1"]');
         var siguiente = carrusel.querySelector('[data-gatos-dir="1"]');
-        var puntos = carrusel.querySelectorAll('.gatos-punto');
 
-        if (!pista || !controles || !anterior || !siguiente || !puntos.length) {
+        if (!pista || !controles || !anterior || !siguiente) {
             return;
         }
 
-        var total = puntos.length;
+        var total = pista.querySelectorAll('.gato-slide').length;
+
+        if (total < 2) {
+            return;
+        }
+
         var movimientoReducido = false;
 
         try {
@@ -228,16 +241,6 @@
             return Math.max(0, Math.min(total - 1, calculado));
         }
 
-        function marcar(boton, activo) {
-            if (activo) {
-                boton.setAttribute('aria-current', 'true');
-                boton.setAttribute('aria-selected', 'true');
-            } else {
-                boton.removeAttribute('aria-current');
-                boton.setAttribute('aria-selected', 'false');
-            }
-        }
-
         function pintar() {
             var actual = indiceActual();
             var enInicio = actual === 0;
@@ -247,10 +250,6 @@
             anterior.setAttribute('aria-disabled', enInicio ? 'true' : 'false');
             siguiente.disabled = enFinal;
             siguiente.setAttribute('aria-disabled', enFinal ? 'true' : 'false');
-
-            for (var i = 0; i < puntos.length; i++) {
-                marcar(puntos[i], i === actual);
-            }
         }
 
         function ir(indice) {
@@ -307,8 +306,8 @@
             }
         }
 
-        /* Pulsar un punto o una flecha reinicia los 2 s, y cualquier gesto
-           manual deja 6 s de tregua antes de que el carrusel vuelva a moverse. */
+        /* Pulsar una flecha reinicia los 2 s, y cualquier gesto manual deja 6 s
+           de tregua antes de que el carrusel vuelva a moverse. */
         function gestoManual(reiniciar) {
             reanudarEn = Date.now() + ESPERA_GESTO;
             if (reiniciar && TEMPORIZADOR) {
@@ -327,15 +326,6 @@
             ir(indiceActual() + 1);
             gestoManual(true);
         });
-
-        for (var i = 0; i < puntos.length; i++) {
-            (function (indice) {
-                puntos[indice].addEventListener('click', function () {
-                    ir(indice);
-                    gestoManual(true);
-                });
-            })(i);
-        }
 
         var pendiente = false;
         pista.addEventListener('scroll', function () {

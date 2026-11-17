@@ -34,6 +34,8 @@
                 <i class="fas fa-gamepad"></i> CallCenterGamer
             </a>
             <ul>
+                {# Catálogo Marvel: enlace para todos los roles y visitantes. #}
+                <li><a href="{% url 'marvel:catalogo' %}">Catálogo Marvel</a></li>
                 {% if user.is_authenticated %}
                     {% if user.rol == 'administrador' or user.rol == 'tecnico' %}
                         <li><a href="{% url 'administracion' %}">Administración</a></li>

@@ -1,0 +1,100 @@
+{% extends "componentes/header.html" %}
+{% load static %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'catalogo.css' %}?v=20261111-c14">
+{% endblock %}
+
+{% block title %}Catálogo Marvel{% endblock %}
+
+{% block content %}
+<div class="MarvelContenedor">
+    <header class="MarvelCabecera">
+        <h1><i class="fas fa-shield-halved" aria-hidden="true"></i> Catálogo Marvel</h1>
+        <p>Películas, series y personajes del universo Marvel, atendido por el mismo Call Center.</p>
+    </header>
+
+    {# Filtros: se envian por GET; la vista nunca modifica registros. #}
+    <form method="get" class="MarvelFiltros" role="search">
+        <label class="visually-hidden" for="q">Buscar por nombre</label>
+        <input id="q" type="text" name="q" maxlength="100" placeholder="Buscar por nombre..."
+               value="{{ busqueda }}">
+        <label class="visually-hidden" for="tipo">Filtrar por tipo</label>
+        <select id="tipo" name="tipo">
+            <option value="">Todos</option>
+            <option value="peliculas" {% if tipo == 'peliculas' %}selected{% endif %}>Películas</option>
+            <option value="series" {% if tipo == 'series' %}selected{% endif %}>Series</option>
+            <option value="personajes" {% if tipo == 'personajes' %}selected{% endif %}>Personajes</option>
+        </select>
+        {% if fases_disponibles %}
+        <label class="visually-hidden" for="fase">Filtrar por fase</label>
+        <select id="fase" name="fase">
+            <option value="">Toda fase</option>
+            {% for numero in fases_disponibles %}
+            <option value="{{ numero }}" {% if fase == numero|stringformat:"s" %}selected{% endif %}>Fase {{ numero }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+        <button type="submit"><i class="fas fa-search" aria-hidden="true"></i> Buscar</button>
+        {% if busqueda or tipo or fase %}
+        <a class="MarvelFiltros-limpiar" href="{% url 'marvel:catalogo' %}">Limpiar</a>
+        {% endif %}
+    </form>
+
+    {% if pagina.object_list %}
+    <p class="MarvelContador">{{ total_resultados }} resultado{{ total_resultados|pluralize }}{% if busqueda %} para “{{ busqueda }}”{% endif %}</p>
+
+    <div class="MarvelCuadricula">
+        {% for elemento in pagina.object_list %}
+        <a class="MarvelTarjeta" href="{% url 'marvel:detalle' elemento.pk %}">
+            {% if elemento.imagen %}
+            <img class="MarvelTarjeta-imagen" src="{{ elemento.imagen }}" alt="{{ elemento.nombre }}" loading="lazy">
+            {% else %}
+            {# Placeholder: sin imagen externa, icono por tipo de contenido. #}
+            <div class="MarvelTarjeta-imagen MarvelTarjeta-sinimagen">
+                <i class="fas {% if elemento.tipo == 'movie' %}fa-film{% elif elemento.tipo == 'tvshow' %}fa-tv{% else %}fa-user-astronaut{% endif %}" aria-hidden="true"></i>
+            </div>
+            {% endif %}
+            <div class="MarvelTarjeta-cuerpo">
+                <div class="MarvelTarjeta-fila">
+                    <h2 class="MarvelTarjeta-nombre">{{ elemento.nombre }}</h2>
+                    <span class="MarvelTipo MarvelTipo-{{ elemento.tipo }}">{{ elemento.get_tipo_display }}</span>
+                </div>
+                {% if elemento.descripcion %}
+                <p class="MarvelTarjeta-descripcion">{{ elemento.descripcion|truncatechars:120 }}</p>
+                {% endif %}
+                <div class="MarvelTarjeta-meta">
+                    {% if elemento.fecha_estreno %}<span><i class="fas fa-calendar" aria-hidden="true"></i> {{ elemento.fecha_estreno|date:"d/m/Y" }}</span>{% endif %}
+                    {% if elemento.fase %}<span><i class="fas fa-flag" aria-hidden="true"></i> Fase {{ elemento.fase }}</span>{% endif %}
+                    {% if elemento.saga %}<span><i class="fas fa-book" aria-hidden="true"></i> {{ elemento.saga }}</span>{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if pagina.has_other_pages %}
+    <nav class="MarvelPaginador" aria-label="Paginación del catálogo">
+        {% if pagina.has_previous %}
+        <a href="?page={{ pagina.previous_page_number }}{{ parametros }}">&laquo; Anterior</a>
+        {% endif %}
+        <span class="MarvelPaginador-actual">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+        {% if pagina.has_next %}
+        <a href="?page={{ pagina.next_page_number }}{{ parametros }}">Siguiente &raquo;</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% elif hay_catalogo %}
+    <div class="MarvelVacio">
+        <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+        <p>No hay resultados para los filtros aplicados. Prueba con otro nombre o tipo.</p>
+    </div>
+    {% else %}
+    <div class="MarvelVacio">
+        <i class="fas fa-box-archive" aria-hidden="true"></i>
+        <p>El catálogo todavía está vacío. Un administrador debe ejecutar la sincronización con MCU API.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,5 +1,7 @@
 from django import forms
+from django.db.models import Q
 from online.models import Usuario, Preguntas, Respuesta
+from marvel.models import ElementoCatalogo
 
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(
@@ -66,9 +68,22 @@ class LoginForm(forms.Form):
     )
 
 class PreguntasForm(forms.ModelForm):
+    elemento_catalogo = forms.ModelChoiceField(
+        label='Título Marvel relacionado (opcional)',
+        queryset=ElementoCatalogo.objects.filter(activo=True),
+        required=False,
+        empty_label='Sin elemento Marvel',
+    )
+
     class Meta:
         model = Preguntas
-        fields = ['Titulo', 'Pregunta', 'Usuario', 'Fecha_creacion']
+        fields = [
+            'Titulo',
+            'Pregunta',
+            'elemento_catalogo',
+            'Usuario',
+            'Fecha_creacion',
+        ]
         widgets = {
             'Titulo': forms.TextInput(attrs={
                 'placeholder': 'Título de la pregunta',
@@ -81,6 +96,21 @@ class PreguntasForm(forms.ModelForm):
             'Usuario': forms.HiddenInput(),
             'Fecha_creacion': forms.HiddenInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        campo = self.fields['elemento_catalogo']
+        campo.label_from_instance = lambda elemento: (
+            f"{elemento.get_tipo_display()}: {elemento.nombre}"
+        )
+        # Si el ticket ya está vinculado a un elemento que quedó inactivo,
+        # se conserva en el queryset para evitar perder el vínculo al editar.
+        vinculado = self.instance.elemento_catalogo if self.instance.pk else None
+        if vinculado and not vinculado.activo:
+            campo.queryset = ElementoCatalogo.objects.filter(
+                Q(activo=True) | Q(pk=vinculado.pk)
+            )
+
 
 class PreguntaAdminForm(PreguntasForm):
     estado = forms.ChoiceField(

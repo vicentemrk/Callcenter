@@ -773,36 +773,7 @@ la prueba real, `verificar_ia` termina con exit 0 con la clave valida y con exit
 
 ====================================================================================================================================================================================
 
-30. Codificacion de la consola en el comando de verificacion
-
-Problema:
-`python manage.py verificar_ia` respondia bien contra Groq, pero el comando
-terminaba con `UnicodeEncodeError` justo despues de mostrar el origen y la
-latencia. Parecia que la IA fallaba, cuando en realidad la respuesta ya estaba
-generada.
-
-Causa:
-La respuesta del modelo incluye caracteres Unicode que no existen en cp1252,
-la codificacion habitual de la consola de Windows: por ejemplo el guion no
-separable U+2011 y comillas tipograficas. `print` intentaba escribirlos en la
-consola y lanzaba la excepcion. Era un fallo del reporte, no del asistente.
-
-Solucion:
-Se agrego la funcion `imprimible()` en
-`online/management/commands/verificar_ia.py`. Toma la codificacion real de
-`sys.stdout`, codifica el texto con `errors='replace'` y lo decodifica de
-vuelta, de modo que la consola muestra un caracter equivalente en lugar de
-romperse. Se aplica a la consulta, la respuesta, los errores, las preguntas de
-clasificacion y los mensajes de error.
-
-Verificacion:
-El comando termina con codigo de salida 0 mostrando la respuesta completa con
-acentos y guiones. La aplicacion web no se ve afectada porque las plantillas se
-sirven en UTF-8; el problema solo existia en la consola de Windows.
-
-====================================================================================================================================================================================
-
-31. Modo oscuro automatico con selector manual
+30. Modo oscuro automatico con selector manual
 
 Problema:
 La interfaz solo tenia un tema claro. En horario nocturno o con el sistema
@@ -839,7 +810,7 @@ en escritorio y 34x34 en movil, y no aparece scroll horizontal en 1366, 768 ni
 
 ====================================================================================================================================================================================
 
-32. Layout responsivo y recursos inexistentes
+31 . Layout responsivo y recursos inexistentes
 
 Problema:
 En pantallas de notebook y moviles la aplicacion se desbordaba: el chat medía

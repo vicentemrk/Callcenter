@@ -1,0 +1,60 @@
+{% extends "componentes/header.html" %}
+{% load static %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'catalogo.css' %}?v=20261111-c14">
+{% endblock %}
+
+{% block title %}{{ elemento.nombre }} - Catálogo Marvel{% endblock %}
+
+{% block content %}
+<div class="MarvelContenedor">
+    <p class="MarvelDetalle-volver">
+        <a href="{% url 'marvel:catalogo' %}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Volver al catálogo</a>
+    </p>
+
+    <article class="MarvelDetalle">
+        {% if elemento.imagen %}
+        <img class="MarvelDetalle-imagen" src="{{ elemento.imagen }}" alt="{{ elemento.nombre }}">
+        {% else %}
+        <div class="MarvelDetalle-imagen MarvelDetalle-sinimagen">
+            <i class="fas {% if elemento.tipo == 'movie' %}fa-film{% elif elemento.tipo == 'tvshow' %}fa-tv{% else %}fa-user-astronaut{% endif %}" aria-hidden="true"></i>
+        </div>
+        {% endif %}
+
+        <div class="MarvelDetalle-texto">
+            <div class="MarvelTarjeta-fila">
+                <h1 class="MarvelDetalle-titulo">{{ elemento.nombre }}</h1>
+                <span class="MarvelTipo MarvelTipo-{{ elemento.tipo }}">{{ elemento.get_tipo_display }}</span>
+            </div>
+
+            <dl class="MarvelDetalle-datos">
+                <div><dt>Tipo</dt><dd>{{ elemento.get_tipo_display }}</dd></div>
+                <div><dt>Descripción</dt><dd>{% if elemento.descripcion %}{{ elemento.descripcion }}{% else %}Sin dato{% endif %}</dd></div>
+                <div><dt>Fecha de estreno</dt><dd>{% if elemento.fecha_estreno %}{{ elemento.fecha_estreno|date:"d/m/Y" }}{% else %}Sin dato{% endif %}</dd></div>
+                {% if elemento.tipo != 'character' %}
+                <div><dt>Fase del MCU</dt><dd>{% if elemento.fase %}Fase {{ elemento.fase }}{% else %}Sin dato{% endif %}</dd></div>
+                <div><dt>Saga</dt><dd>{% if elemento.saga %}{{ elemento.saga }}{% else %}Sin dato{% endif %}</dd></div>
+                {% endif %}
+                {% for ficha in fichas %}
+                <div><dt>{{ ficha.etiqueta }}</dt><dd>{{ ficha.valor }}</dd></div>
+                {% endfor %}
+            </dl>
+
+            <div class="MarvelDetalle-acciones">
+                {% if user.is_authenticated and user.rol == 'cliente' %}
+                <a class="MarvelBoton-consulta" href="{% url 'inicio' user.id %}?elemento={{ elemento.pk }}">
+                    <i class="fas fa-headset" aria-hidden="true"></i>
+                    Crear consulta sobre este elemento
+                </a>
+                {% elif not user.is_authenticated %}
+                <a class="MarvelBoton-consulta MarvelBoton-consulta-login" href="{% url 'Login' %}">
+                    <i class="fas fa-right-to-bracket" aria-hidden="true"></i>
+                    Inicia sesión para crear una consulta
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+</div>
+{% endblock %}

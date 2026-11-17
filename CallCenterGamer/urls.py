@@ -1,7 +1,7 @@
 """CallCenterGamer URL Configuration"""
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from online.views import Index, Inicio, RegisterView, LoginView, ViewRespuestas, logout_view
 from administracion.views import (
     AnalyticsIA,
@@ -17,6 +17,7 @@ from administracion.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', Index, name='index'),
+    path('marvel/', include('marvel.urls')),
     path('Administracion/', IndexAdmin, name='administracion'),
     path('AnalyticsIA/', AnalyticsIA, name='analytics_ia'),
     path('Login/', LoginView.as_view(), name='Login'),

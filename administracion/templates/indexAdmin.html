@@ -206,7 +206,15 @@
                             <span class="admin-question-preview">{{ pregunta.Pregunta|truncatechars:90 }}</span>
                         </td>
                         <td>{{ pregunta.Usuario.usuario }}</td>
-                        <td><span class="admin-categoria">{{ pregunta.get_categoria_display }}</span></td>
+                        <td>
+                            <span class="admin-categoria">{{ pregunta.get_categoria_display }}</span>
+                            {% if pregunta.elemento_catalogo %}
+                            <span class="admin-categoria admin-categoria-marvel" title="Elemento Marvel: {{ pregunta.elemento_catalogo.get_tipo_display }}: {{ pregunta.elemento_catalogo.nombre }}">
+                                <i class="fas fa-clapperboard" aria-hidden="true"></i>
+                                {{ pregunta.elemento_catalogo.nombre|truncatechars:24 }}
+                            </span>
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="admin-badge admin-badge-{{ pregunta.estado }}">
                                 {{ pregunta.get_estado_display }}

@@ -662,6 +662,28 @@
     font-weight: 600;
 }
 
+/* Elemento Marvel vinculado al ticket (C1.3) */
+
+.chat-marvel-enlace {
+    color: #4E31E1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.chat-marvel-enlace:hover {
+    color: #3b22b8;
+}
+
+.chat-marvel-enlace:focus-visible {
+    outline: 2px solid #4E31E1;
+    outline-offset: 2px;
+}
+
+.chat-marvel-inactivo {
+    color: #6c6880;
+    font-weight: 500;
+}
+
 .chat-sin-mensajes {
     display: flex;
     flex-direction: column;
@@ -788,8 +810,9 @@
    Carrusel de gatos
    ----------------------------------------------------------------------------
    Funciona sin JavaScript: la pista es un contenedor con scroll horizontal
-   nativo y scroll-snap. Las flechas y los puntos son mejora progresiva; sin JS
-   quedan ocultos ([hidden]) para no dejar controles muertos a la vista.
+   nativo y scroll-snap. Las flechas son mejora progresiva; sin JS quedan
+   ocultas ([hidden]) para no dejar controles muertos a la vista. No hay puntos:
+   las flechas se superponen dentro del marco, una a cada lado.
    Los overrides del modo oscuro viven en tema.css (sección 14.6).
    ========================================================================== */
 
@@ -829,19 +852,26 @@
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 728 / 455;
+    /* Las seis fotos son cuadradas: el marco no recorta ni deja franjas. */
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     object-position: center;
 }
 
-/* Controles: solo se muestran cuando el JS confirma que puede mover la pista */
+/* Controles: solo se muestran cuando el JS confirma que puede mover la pista.
+   Van superpuestos al marco, uno pegado a cada borde vertical. El contenedor
+   no intercepta el puntero para no bloquear el arrastre sobre la foto. */
 .gatos-controles {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
+    justify-content: space-between;
+    padding: 0 8px;
+    pointer-events: none;
 }
 
 .gatos-controles[hidden] {
@@ -853,83 +883,37 @@
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     padding: 0;
-    background-color: #ffffff;
-    border: 1px solid #cfc6ee;
-    border-radius: 8px;
-    color: #4E31E1;
+    background-color: rgba(12, 12, 18, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 50%;
+    color: #ffffff;
     font-family: "DM Sans", sans-serif;
-    font-size: 1.5em;
+    font-size: 1.4em;
     line-height: 1;
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    pointer-events: auto;
+    transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .gatos-flecha:hover:not(:disabled) {
-    background-color: #ece7ff;
-    border-color: #4E31E1;
+    background-color: rgba(190, 20, 45, 0.9);
+    border-color: rgba(255, 255, 255, 0.75);
 }
 
+/* En los extremos la flecha desaparece en vez de quedar como un boton muerto
+   encima de la foto; aria-disabled sigue informando el estado. */
 .gatos-flecha:disabled {
-    background-color: #f6f4ff;
-    border-color: #e7e4f2;
-    color: #5f5a75;
-    cursor: not-allowed;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .gatos-flecha:focus-visible {
-    outline: 3px solid #4E31E1;
+    outline: 3px solid #ffffff;
     outline-offset: 2px;
-}
-
-.gatos-puntos {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-width: 0;
-}
-
-.gatos-punto {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-}
-
-.gatos-punto::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #6c6880;
-}
-
-.gatos-punto:hover::before {
-    background-color: #4E31E1;
-}
-
-.gatos-punto[aria-current="true"]::before {
-    width: 12px;
-    height: 12px;
-    background-color: #4E31E1;
-}
-
-.gatos-punto:focus-visible {
-    outline: none;
-}
-
-.gatos-punto:focus-visible::before {
-    outline: 3px solid #4E31E1;
-    outline-offset: 2px;
+    box-shadow: 0 0 0 5px rgba(12, 12, 18, 0.55);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -938,35 +922,20 @@
     }
 }
 
-/* Al apilarse (≤900px) la columna ocupa todo el ancho: se acota el alto de la
-   foto para que el carrusel no se coma la pantalla. object-fit: cover evita
-   deformar la imagen. */
-@media (max-width: 900px) {
-    .gato-slide img {
-        height: 280px;
-    }
-}
-
+/* Al apilarse (por debajo de 900px) la columna ocupa todo el ancho y la foto
+   cuadrada crece con ella: no se fija alto para no recortar ni deformar. */
 @media (max-width: 600px) {
     .divFondo {
         padding: 8px;
     }
 
-    .gato-slide img {
-        height: 230px;
-    }
-
     .gatos-controles {
-        gap: 6px;
+        padding: 0 4px;
     }
 
     .gatos-flecha {
-        width: 44px;
-        height: 44px;
-    }
-
-    .gatos-punto {
-        width: 40px;
-        height: 40px;
+        width: 34px;
+        height: 34px;
+        font-size: 1.2em;
     }
 }

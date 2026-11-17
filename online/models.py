@@ -187,6 +187,13 @@ class Preguntas(models.Model):
         default='baja',
         db_index=True,
     )
+    elemento_catalogo = models.ForeignKey(
+        'marvel.ElementoCatalogo',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tickets',
+    )
 
     def __str__(self):
         return f"{self.idPregunta} - {self.Titulo}"

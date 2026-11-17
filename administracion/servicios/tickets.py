@@ -69,12 +69,16 @@ def modificar(id_pregunta, datos, usuario):
         }
 
     with transaction.atomic():
-        pregunta = Preguntas.objects.select_for_update().get(
-            idPregunta=id_pregunta
+        pregunta = (
+            Preguntas.objects
+            .select_for_update()
+            .select_related('elemento_catalogo')
+            .get(idPregunta=id_pregunta)
         )
         texto_anterior = pregunta.Pregunta
         usuario_original = pregunta.Usuario
         fecha_original = pregunta.Fecha_creacion
+        elemento_original = pregunta.elemento_catalogo
 
         form = PreguntaAdminForm(datos, instance=pregunta)
         if not form.is_valid():
@@ -93,14 +97,21 @@ def modificar(id_pregunta, datos, usuario):
                 actualizada.Pregunta
             )
         actualizada.save()
+
+        detalle = (
+            f'Estado: {actualizada.estado}; '
+            f'Prioridad: {actualizada.prioridad}'
+        )
+        if actualizada.elemento_catalogo_id != _id_elemento(elemento_original):
+            detalle += (
+                f' ; Elemento Marvel: {_texto_elemento(elemento_original)}'
+                f' -> {_texto_elemento(actualizada.elemento_catalogo)}'
+            )
         Auditoria.objects.create(
             usuario=usuario,
             pregunta=actualizada,
             accion='modificar_pregunta',
-            detalle=(
-                f'Estado: {actualizada.estado}; '
-                f'Prioridad: {actualizada.prioridad}'
-            ),
+            detalle=detalle[:255],
         )
         return {
             'form': form,
@@ -108,3 +119,15 @@ def modificar(id_pregunta, datos, usuario):
             'guardado': True,
             'datos_invalidos': False,
         }
+
+
+def _id_elemento(elemento):
+    """Identificador del elemento relacionado (None si no hay)."""
+    return elemento.pk if elemento is not None else None
+
+
+def _texto_elemento(elemento):
+    """Texto corto del elemento para la auditoria (None -> 'Sin elemento')."""
+    if elemento is None:
+        return 'Sin elemento'
+    return f'{elemento.get_tipo_display()}: {elemento.nombre}'

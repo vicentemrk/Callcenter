@@ -8,6 +8,7 @@ from django.views.generic import CreateView, FormView
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from online.models import Preguntas, Usuario, Respuesta
+from marvel.models import ElementoCatalogo
 from online.ia_utils import AsistenteIA
 from online.recomendaciones_ia import RecomendadorIA
 
@@ -49,9 +50,26 @@ def Inicio(request, id):
         usuario = Usuario.objects.get(id=id)
         if request.user.id != usuario.id:
             return redirect('inicio', id=request.user.id)
-        preguntas = Preguntas.objects.filter(Usuario=usuario)
+        preguntas = (
+            Preguntas.objects
+            .filter(Usuario=usuario)
+            .select_related('elemento_catalogo')
+        )
         now = timezone.now()
-        form = PreguntasForm(initial={'Usuario': id, 'Fecha_creacion': now})
+        # Elemento Marvel preseleccionado desde el catalogo (C1.2; el botón
+        # desde la ficha llega en C1.4). Si el identificador es invalido,
+        # inexistente o inactivo se ignora.
+        elemento_arg = request.GET.get('elemento')
+        initial = {'Usuario': id, 'Fecha_creacion': now}
+        if elemento_arg and elemento_arg.isdigit():
+            elemento_inicial = (
+                ElementoCatalogo.objects
+                .filter(pk=int(elemento_arg), activo=True)
+                .first()
+            )
+            if elemento_inicial:
+                initial['elemento_catalogo'] = elemento_inicial.pk
+        form = PreguntasForm(initial=initial)
         sugerencias_ia = None
         """
         Conectamos los asistentes de IA para generar respuestas automáticas y recomendaciones basadas en la pregunta del usuario.Qu
@@ -99,7 +117,9 @@ def ViewRespuestas(request, idUser, idPregunta):
     Vista para ver y responder preguntas
     """
     try:
-        pregunta = Preguntas.objects.get(idPregunta=idPregunta)
+        pregunta = Preguntas.objects.select_related(
+            'elemento_catalogo'
+        ).get(idPregunta=idPregunta)
         if not (
             request.user.id == pregunta.Usuario_id
             or request.user.rol in ('administrador', 'tecnico')

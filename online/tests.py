@@ -4,7 +4,9 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.test import override_settings
-from online.models import Preguntas, Respuesta, Usuario
+from online.models import Auditoria, Preguntas, Respuesta, Usuario
+from online.forms import PreguntasForm, PreguntaAdminForm
+from marvel.models import ElementoCatalogo
 from online.ia_utils import MENSAJE_NO_DISPONIBLE, AsistenteIA
 
 
@@ -346,4 +348,423 @@ class RedireccionesServidorTests(TestCase):
 
         self.assertRedirects(response, reverse('administracion'))
         asistente_cls.assert_not_called()
+
+
+class TicketsConElementoMarvelTests(TestCase):
+    """Fase C1.2: selector opcional de elemento Marvel al crear tickets."""
+
+    def setUp(self):
+        self.dueño = self._crear_usuario('dueno-c12', 'dueno@example.com')
+        self.elemento = ElementoCatalogo.objects.create(
+            mcu_id=249,
+            tipo='movie',
+            nombre='Superman',
+            activo=True,
+        )
+        self.otro_elemento = ElementoCatalogo.objects.create(
+            mcu_id=250,
+            tipo='character',
+            nombre='Batman',
+            activo=True,
+        )
+        self.question_anterior = Preguntas.objects.create(
+            Titulo='Consulta previa',
+            Pregunta='No carga la lista de amigos',
+            Fecha_creacion=timezone.now(),
+            Usuario=self.dueño,
+        )
+        self.client.force_login(self.dueño)
+
+    def _crear_usuario(self, username, email):
+        usuario = Usuario.objects.create(
+            usuario=username,
+            correo=email,
+        )
+        usuario.set_password('test-password-123')
+        usuario.save()
+        return usuario
+
+    def _datos_ticket(self):
+        return {
+            'Titulo': 'Ticket con Marvel',
+            'Pregunta': 'El personaje tiene un error de descripcion',
+            'Usuario': self.dueño.id,
+            'Fecha_creacion': timezone.now().isoformat(),
+        }
+
+    def _crear_ticket(self):
+        """Crea un ticket via POST (IA simulada por quien llama) y
+        devuelve la respuesta."""
+        return self.client.post(
+            reverse('inicio', args=[self.dueño.id]),
+            self._datos_ticket(),
+        )
+
+    @patch('online.views.AsistenteIA')
+    def test_crear_ticket_sin_elemento_marvel(self, asistente_cls):
+        asistente_cls.return_value.clasificar_pregunta.return_value = 'otros'
+
+        self._crear_ticket()
+
+        pregunta = Preguntas.objects.get(Titulo='Ticket con Marvel')
+        self.assertIsNone(pregunta.elemento_catalogo)
+
+    @patch('online.views.AsistenteIA')
+    def test_crear_ticket_con_elemento_activo(self, asistente_cls):
+        asistente_cls.return_value.clasificar_pregunta.return_value = 'otros'
+
+        datos = self._datos_ticket()
+        datos['elemento_catalogo'] = self.elemento.pk
+        self.client.post(
+            reverse('inicio', args=[self.dueño.id]),
+            datos,
+        )
+
+        pregunta = Preguntas.objects.get(Titulo='Ticket con Marvel')
+        self.assertEqual(pregunta.elemento_catalogo_id, self.elemento.pk)
+        self.assertEqual(pregunta.Usuario_id, self.dueño.id)
+
+    def _datos_formulario(self, **extra):
+        datos = {
+            'Titulo': 'Titulo',
+            'Pregunta': 'Texto',
+            'Usuario': self.dueño.id,
+            'Fecha_creacion': timezone.now().isoformat(),
+        }
+        datos.update(extra)
+        return datos
+
+    def test_formulario_acepta_elemento_activo(self):
+        form = PreguntasForm(
+            data=self._datos_formulario(
+                elemento_catalogo=self.elemento.pk,
+            ),
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_formulario_rechaza_elemento_inactivo(self):
+        self.elemento.activo = False
+        self.elemento.save()
+
+        form = PreguntasForm(
+            data=self._datos_formulario(
+                elemento_catalogo=self.elemento.pk,
+            ),
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('elemento_catalogo', form.errors)
+        self.assertNotIn('Usuario', form.errors)
+
+    def test_formulario_rechaza_identificador_inexistente(self):
+        form = PreguntasForm(
+            data=self._datos_formulario(
+                elemento_catalogo=self.elemento.pk + 9999,
+            ),
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('elemento_catalogo', form.errors)
+
+    def test_preseleccion_por_get_con_elemento_activo(self):
+        response = self.client.get(
+            reverse('inicio', args=[self.dueño.id]),
+            {'elemento': self.elemento.pk},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertEqual(
+            form['elemento_catalogo'].initial,
+            self.elemento.pk,
+        )
+        self.assertContains(
+            response,
+            '<option value="{}" selected>'.format(self.elemento.pk),
+        )
+
+    def test_preseleccion_por_get_invalido_se_ignora(self):
+        for valor in ('no-numero', '-5', '99999'):
+            with self.subTest(valor=valor):
+                response = self.client.get(
+                    reverse('inicio', args=[self.dueño.id]),
+                    {'elemento': valor},
+                )
+                self.assertEqual(response.status_code, 200)
+                form = response.context['form']
+                self.assertNotIn('elemento_catalogo', form.initial or {})
+
+    def test_etiquetas_del_selector_distinguen_tipo(self):
+        response = self.client.get(
+            reverse('inicio', args=[self.dueño.id]),
+        )
+
+        contenido = response.content.decode('utf-8')
+        self.assertIn('Pelicula: Superman', contenido)
+        self.assertIn('Personaje: Batman', contenido)
+        self.assertIn('Sin elemento Marvel', contenido)
+
+    @patch('online.views.AsistenteIA')
+    def test_tickets_anteriores_quedan_intactos_tras_crear_con_marvel(
+        self, asistente_cls,
+    ):
+        asistente_cls.return_value.clasificar_pregunta.return_value = 'otros'
+
+        datos = self._datos_ticket()
+        datos['elemento_catalogo'] = self.otro_elemento.pk
+        self.client.post(
+            reverse('inicio', args=[self.dueño.id]),
+            datos,
+        )
+
+        anterior = Preguntas.objects.get(pk=self.question_anterior.pk)
+        self.assertIsNone(anterior.elemento_catalogo)
+        self.assertEqual(anterior.Usuario_id, self.dueño.id)
+        self.assertEqual(
+            Preguntas.objects.count(),
+            2,
+        )
+
+    def test_select_marvel_solo_muestra_elementos_activos(self):
+        inactivo = ElementoCatalogo.objects.create(
+            mcu_id=251,
+            tipo='tvshow',
+            nombre='Serie oculta',
+            activo=False,
+        )
+
+        response = self.client.get(
+            reverse('inicio', args=[self.dueño.id]),
+        )
+
+        contenido = response.content.decode('utf-8')
+        self.assertNotIn(inactivo.nombre, contenido)
+
+    def test_formulario_admin_incluye_campo_y_preserva_dueno(self):
+        formulario = PreguntaAdminForm(instance=self.question_anterior)
+
+        self.assertIn('elemento_catalogo', formulario.fields)
+
+        datos = {
+            'Titulo': self.question_anterior.Titulo,
+            'Pregunta': self.question_anterior.Pregunta,
+            'Usuario': self.dueño.id,
+            'Fecha_creacion': self.question_anterior.Fecha_creacion.isoformat(),
+            'elemento_catalogo': self.otro_elemento.pk,
+        }
+        form = PreguntaAdminForm(data=datos, instance=self.question_anterior)
+        self.assertTrue(form.is_valid(), form.errors)
+        guardado = form.save(commit=False)
+
+        self.assertEqual(guardado.Usuario_id, self.dueño.id)
+        self.assertEqual(guardado.elemento_catalogo_id, self.otro_elemento.pk)
+
+
+class VinculoMarvelC13Tests(TestCase):
+    """Fase C1.3: visualizacion del vinculo y auditoria de su cambio."""
+
+    def setUp(self):
+        self.dueño = self._crear_usuario('dueno-c13', 'dueno@example.com')
+        self.admin = self._crear_usuario(
+            'admin-c13', 'admin-c13@example.com', rol='administrador'
+        )
+        self.elemento = ElementoCatalogo.objects.create(
+            mcu_id=300,
+            tipo='movie',
+            nombre='Superman',
+            activo=True,
+        )
+        self.otro_elemento = ElementoCatalogo.objects.create(
+            mcu_id=301,
+            tipo='tvshow',
+            nombre='Batman: la serie',
+            activo=True,
+        )
+        self.question = Preguntas.objects.create(
+            Titulo='Consulta con Marvel',
+            Pregunta='Error en la ficha del personaje',
+            Fecha_creacion=timezone.now(),
+            Usuario=self.dueño,
+            elemento_catalogo=self.elemento,
+        )
+
+    def _crear_usuario(self, username, email, **fields):
+        usuario = Usuario.objects.create(
+            usuario=username,
+            correo=email,
+            **fields,
+        )
+        usuario.set_password('test-password-123')
+        usuario.save()
+        return usuario
+
+    def _datos_admin(self):
+        return {
+            'Titulo': self.question.Titulo,
+            'Pregunta': self.question.Pregunta,
+            'Usuario': self.dueño.id,
+            'Fecha_creacion': self.question.Fecha_creacion.isoformat(),
+        }
+
+    def test_ticket_con_elemento_visible_en_conversacion(self):
+        self.client.force_login(self.dueño)
+
+        response = self.client.get(
+            reverse(
+                'respuestas',
+                args=[self.dueño.id, self.question.idPregunta],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        contenido = response.content.decode('utf-8')
+        self.assertIn('Elemento Marvel', contenido)
+        self.assertIn('Pelicula: Superman', contenido)
+        self.assertIn(f'/marvel/{self.elemento.pk}/', contenido)
+
+    def test_ticket_sin_elemento_no_muestra_bloque(self):
+        self.question.elemento_catalogo = None
+        self.question.save()
+        self.client.force_login(self.dueño)
+
+        response = self.client.get(
+            reverse(
+                'respuestas',
+                args=[self.dueño.id, self.question.idPregunta],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Elemento Marvel')
+
+    def test_elemento_inactivo_se_muestra_sin_enlace(self):
+        self.elemento.activo = False
+        self.elemento.save()
+        self.client.force_login(self.dueño)
+
+        response = self.client.get(
+            reverse(
+                'respuestas',
+                args=[self.dueño.id, self.question.idPregunta],
+            )
+        )
+
+        contenido = response.content.decode('utf-8')
+        self.assertIn('Superman', contenido)
+        self.assertIn('(inactivo)', contenido)
+        self.assertNotIn(f'/marvel/{self.elemento.pk}/', contenido)
+
+    def test_listado_cliente_muestra_badge_marvel(self):
+        self.client.force_login(self.dueño)
+
+        response = self.client.get(reverse('inicio', args=[self.dueño.id]))
+
+        self.assertEqual(response.status_code, 200)
+        contenido = response.content.decode('utf-8')
+        self.assertIn('Preguntas-marvel', contenido)
+        self.assertIn('Superman', contenido)
+
+    def test_listado_cliente_sin_elemento_no_muestra_badge(self):
+        self.question.elemento_catalogo = None
+        self.question.save()
+        self.client.force_login(self.dueño)
+
+        response = self.client.get(reverse('inicio', args=[self.dueño.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Preguntas-marvel')
+
+    def test_listado_admin_muestra_indicacion_marvel(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse('administracion'))
+
+        self.assertEqual(response.status_code, 200)
+        contenido = response.content.decode('utf-8')
+        self.assertIn('admin-categoria-marvel', contenido)
+        self.assertIn('Superman', contenido)
+
+    @patch('administracion.servicios.tickets.AsistenteIA')
+    def test_cambio_de_elemento_registra_auditoria_anterior_y_nuevo(
+        self, asistente_cls,
+    ):
+        self.client.force_login(self.admin)
+        fecha_original = self.question.Fecha_creacion
+
+        datos = self._datos_admin()
+        datos['elemento_catalogo'] = self.otro_elemento.pk
+        self.client.post(
+            reverse('modificar_pregunta', args=[self.question.idPregunta]),
+            datos,
+        )
+
+        auditoria = Auditoria.objects.filter(
+            pregunta=self.question,
+            accion='modificar_pregunta',
+        ).first()
+        self.assertIsNotNone(auditoria)
+        self.assertIn('Pelicula: Superman', auditoria.detalle)
+        self.assertIn('Serie: Batman: la serie', auditoria.detalle)
+        self.assertIn('->', auditoria.detalle)
+        self.assertEqual(auditoria.usuario_id, self.admin.id)
+
+        self.question.refresh_from_db()
+        self.assertEqual(self.question.elemento_catalogo_id, self.otro_elemento.pk)
+        self.assertEqual(self.question.Usuario_id, self.dueño.id)
+        self.assertEqual(self.question.Fecha_creacion, fecha_original)
+
+    @patch('administracion.servicios.tickets.AsistenteIA')
+    def test_eliminar_relacion_registra_auditoria_sin_elemento(
+        self, asistente_cls,
+    ):
+        self.client.force_login(self.admin)
+
+        datos = self._datos_admin()
+        datos['elemento_catalogo'] = ''
+        self.client.post(
+            reverse('modificar_pregunta', args=[self.question.idPregunta]),
+            datos,
+        )
+
+        auditoria = Auditoria.objects.filter(
+            pregunta=self.question,
+            accion='modificar_pregunta',
+        ).first()
+        self.assertIsNotNone(auditoria)
+        self.assertIn('Pelicula: Superman', auditoria.detalle)
+        self.assertIn('Sin elemento', auditoria.detalle)
+
+        self.question.refresh_from_db()
+        self.assertIsNone(self.question.elemento_catalogo)
+
+    @patch('administracion.servicios.tickets.AsistenteIA')
+    def test_modificacion_sin_cambio_no_menciona_elemento(self, asistente_cls):
+        self.client.force_login(self.admin)
+
+        datos = self._datos_admin()
+        datos['elemento_catalogo'] = self.elemento.pk
+        datos['Titulo'] = 'Titulo editado sin cambio de vinculo'
+        self.client.post(
+            reverse('modificar_pregunta', args=[self.question.idPregunta]),
+            datos,
+        )
+
+        auditoria = Auditoria.objects.filter(
+            pregunta=self.question,
+            accion='modificar_pregunta',
+        ).first()
+        self.assertIsNotNone(auditoria)
+        self.assertNotIn('Elemento Marvel', auditoria.detalle)
+        self.assertEqual(
+            Auditoria.objects.filter(pregunta=self.question).count(),
+            1,
+        )
+
+    def test_cliente_ajeno_no_puede_ver_el_ticket(self):
+        ajeno = self._crear_usuario('ajeno-c13', 'ajeno@example.com')
+        self.client.force_login(ajeno)
+
+        response = self.client.get(
+            reverse('respuestas', args=[ajeno.id, self.question.idPregunta])
+        )
+
+        self.assertRedirects(response, reverse('inicio', args=[ajeno.id]))
 

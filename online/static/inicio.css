@@ -80,6 +80,19 @@
     font-weight: 600;
 }
 
+/* Badge discreto de elemento Marvel (C1.3) */
+.Preguntas-marvel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    background: rgba(78, 49, 225, 0.08);
+    border-radius: 6px;
+    color: #4E31E1;
+    font-size: 0.76em;
+    font-weight: 600;
+}
+
 /* Badges de estado y prioridad (mismo lenguaje que el panel de admin) */
 .admin-badge {
     display: inline-flex;
@@ -349,6 +362,34 @@
 .InsPreguntas textarea:focus {
     outline: 3px solid #4E31E1;
     outline-offset: 2px;
+}
+
+/* Selector de elemento Marvel (C1.2): mismo lenguaje visual que el resto */
+
+.InsPreguntas select {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: 34px;
+    border-radius: 5px;
+    border: 1px solid #4E31E1;
+    padding: 4px 8px;
+    font-family: "DM Sans", sans-serif;
+    color: inherit;
+    background-color: #ffffff;
+}
+
+.InsPreguntas select:focus {
+    outline: 3px solid #4E31E1;
+    outline-offset: 2px;
+}
+
+.InsPreguntas .errorlist {
+    list-style: none;
+    margin: 4px 0;
+    padding: 0;
+    font-size: 14px;
+    color: #b3261e;
 }
 
 

@@ -468,6 +468,17 @@
     white-space: nowrap;
 }
 
+/* Badge discreto de elemento Marvel vinculado (C1.3) */
+.admin-categoria-marvel {
+    margin-left: 6px;
+    background: rgba(78, 49, 225, 0.08);
+    color: #4E31E1;
+}
+
+.admin-categoria-marvel i {
+    font-size: 0.85em;
+}
+
 .admin-col-num {
     text-align: center;
 }
