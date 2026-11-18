@@ -1,33 +1,213 @@
 {% extends "componentes/header.html" %}
 {% load static %}
 
-{% block title %}Inicio{% endblock %}
+{% block links %}
+<link rel="stylesheet" href="{% static 'landing.css' %}?v=20261118-carrusel">
+{% endblock %}
+
+{% block title %}CallCenterGamer{% endblock %}
 
 {% block content %}
-<div class="Banner">
-        <div class="contLeft"></div>
-        <div class="contRight">
-            <h1>Bienvenido a Call of Gamers!</h1>
-            <p>Comunicate con el mejor call center gamer, nosotros te brindaremos la solución necesaria para tu
-                problema, no dudes más!</p>
-            <div class="contBtn">
-                <a id="btnIngresar" href="{% url 'Login' %}">Ingresar</a>
+{% comment %}Landing principal de CallCenterGamer. Publica, sin
+   redirecciones por rol: los accesos por rol se resuelven con CTAs.{% endcomment %}
+<section class="landing-hero">
+    <div class="landing-hero-texto">
+        <p class="landing-etiqueta">Central de atención del universo Marvel</p>
+        <h1>Bienvenido a <strong>CallCenterGamer</strong></h1>
+        <p class="landing-hero-descripcion">
+            Explora películas y series Marvel en nuestro catálogo, crea consultas
+            sobre tus títulos favoritos y recibe atención con seguimiento mediante
+            tickets, respondidas por nuestro equipo de especialistas.
+        </p>
+        <div class="landing-botones">
+            {% if user.is_authenticated %}
+                {% if user.rol == 'administrador' or user.rol == 'tecnico' %}
+                    <a class="btnPrincipal landing-boton" id="ctaPanel"
+                       href="{% url 'administracion' %}">Ir al panel</a>
+                {% else %}
+                    <a class="btnPrincipal landing-boton" id="ctaPanel"
+                       href="{% url 'inicio' user.id %}">Ir a mis consultas</a>
+                {% endif %}
+                <a class="landing-boton-secundario" id="ctaCatalogo"
+                   href="{% url 'marvel:catalogo' %}">Explorar el catálogo</a>
+            {% else %}
+                <a class="btnPrincipal landing-boton" id="ctaIngresar"
+                   href="{% url 'Login' %}">Ingresar</a>
+                <a class="btnPrincipal landing-boton" id="ctaRegistrarse"
+                   href="{% url 'Register' %}">Registrarse</a>
+                <a class="landing-boton-secundario" id="ctaCatalogo"
+                   href="{% url 'marvel:catalogo' %}">Explorar el catálogo</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="landing-hero-visual">
+        <div class="peliculas-carrusel" data-carrusel-peliculas>
+            <ul class="peliculas-slides" id="peliculas-slides">
+                {% for pelicula in carrusel_peliculas %}
+                <li class="pelicula-slide">
+                    {% if pelicula.elemento %}
+                    <a href="{% url 'marvel:detalle' pelicula.elemento.pk %}"
+                       aria-label="Ver ficha de {{ pelicula.nombre }}">
+                    {% endif %}
+                        <img src="{% static pelicula.recurso %}"
+                             alt="Póster de {{ pelicula.nombre }}"
+                             width="500" height="750"
+                             {% if not forloop.first %}loading="lazy"{% endif %}>
+                    {% if pelicula.elemento %}
+                    </a>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="peliculas-controles" hidden>
+                <button type="button" class="peliculas-flecha" data-peliculas-dir="-1"
+                        aria-label="Película anterior" aria-controls="peliculas-slides">&#8249;</button>
+                <button type="button" class="peliculas-flecha" data-peliculas-dir="1"
+                        aria-label="Película siguiente" aria-controls="peliculas-slides">&#8250;</button>
             </div>
         </div>
     </div>
-    <div class="mainCard">
-        <div class="iCard"></div>
-        <div class="dCard">
-            <h1>Atención 24/7</h1>
-            <p>Comunicate con el mejor call center gamer, nosotros te brindaremos la solución necesaria para tu
-                problema, no dudes más!</p>
+</section>
+
+<section class="landing-seccion" aria-labelledby="titulo-que-puedes-hacer">
+    <h2 class="landing-titulo" id="titulo-que-puedes-hacer">¿Qué puedes hacer?</h2>
+    <p class="landing-intro">
+        Todo lo que ofrece la plataforma está disponible desde tu cuenta
+        CallCenterGamer.
+    </p>
+    <div class="landing-tarjetas">
+        <a class="landing-tarjeta" href="{% url 'marvel:catalogo' %}">
+            <i class="fas fa-film landing-tarjeta-icono" aria-hidden="true"></i>
+            <h3>Explorar el catálogo</h3>
+            <p>Descubre las películas y series Marvel disponibles, con búsqueda, filtros y fichas de detalle.</p>
+        </a>
+        <div class="landing-tarjeta">
+            <i class="fas fa-headset landing-tarjeta-icono" aria-hidden="true"></i>
+            <h3>Crear consultas</h3>
+            <p>Abre tickets sobre películas y series, vinculados a la ficha del catálogo correspondiente.</p>
+        </div>
+        <div class="landing-tarjeta">
+            <i class="fas fa-list-check landing-tarjeta-icono" aria-hidden="true"></i>
+            <h3>Seguir tus tickets</h3>
+            <p>Consulta el estado de tus consultas desde tu panel: en proceso, resueltas o cerradas.</p>
+        </div>
+        <div class="landing-tarjeta">
+            <i class="fas fa-comments landing-tarjeta-icono" aria-hidden="true"></i>
+            <h3>Recibir respuestas</h3>
+            <p>El equipo de atención responde tus tickets, con ayuda inicial del asistente virtual.</p>
         </div>
     </div>
-    <div class="finalBody">
-        <h1>Comunicate con nosotros</h1>
-        <p>Escribenos y nuestros profesionales solucionaran tu problema en tan solo un momento!</p>
-        <div class="contBtn contBtn-final">
-            <a id="btnIngresar" href="{% url 'Login' %}">Ingresar</a>
-        </div>
-</div>
+</section>
+
+<section class="landing-seccion" aria-labelledby="titulo-como-funciona">
+    <h2 class="landing-titulo" id="titulo-como-funciona">¿Cómo funciona?</h2>
+    <p class="landing-intro">
+        Cuatro pasos, fiel al funcionamiento real de la plataforma:
+    </p>
+    <ol class="landing-pasos">
+        <li><strong>Explora el catálogo</strong> y encuentra la película o serie que te interesa.</li>
+        <li><strong>Selecciona la ficha</strong> del título desde el catálogo Marvel.</li>
+        <li><strong>Crea tu consulta</strong> desde la ficha o desde tu panel; queda vinculada al título elegido.</li>
+        <li><strong>Recibe seguimiento y respuestas</strong> del equipo hasta resolver tu consulta.</li>
+    </ol>
+</section>
+
+<section class="landing-cta-final">
+    <h2>¿Listo para empezar?</h2>
+    <p>Explora el catálogo Marvel o entra al call center para resolver tus consultas.</p>
+    <div class="landing-botones">
+        <a class="btnPrincipal landing-boton" id="ctaCatalogoFinal"
+           href="{% url 'marvel:catalogo' %}">Ver el catálogo</a>
+        {% if not user.is_authenticated %}
+            <a class="landing-boton-secundario" id="ctaIngresarFinal"
+               href="{% url 'Login' %}">Ingresar</a>
+        {% endif %}
+    </div>
+</section>
+
+<div class="landing-cierre" aria-hidden="true"></div>
+
+<script>
+(function () {
+    var carrusel = document.querySelector('[data-carrusel-peliculas]');
+    if (!carrusel) return;
+
+    var pista = carrusel.querySelector('.peliculas-slides');
+    var controles = carrusel.querySelector('.peliculas-controles');
+    var anterior = carrusel.querySelector('[data-peliculas-dir="-1"]');
+    var siguiente = carrusel.querySelector('[data-peliculas-dir="1"]');
+    if (!pista || !controles || !anterior || !siguiente) return;
+
+    var slides = pista.querySelectorAll('.pelicula-slide');
+    if (slides.length < 2) return;
+
+    var indice = 0;
+    var temporizador = null;
+    var pausado = false;
+    var reducirMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function indiceActual() {
+        var ancho = pista.clientWidth;
+        if (!ancho) return 0;
+        return Math.max(0, Math.min(slides.length - 1,
+            Math.round(pista.scrollLeft / ancho)));
+    }
+
+    function mover(nuevoIndice, suave) {
+        indice = (nuevoIndice + slides.length) % slides.length;
+        pista.scrollTo({
+            left: indice * pista.clientWidth,
+            behavior: suave && !reducirMovimiento ? 'smooth' : 'auto'
+        });
+    }
+
+    function iniciar() {
+        if (pausado || reducirMovimiento) return;
+        clearInterval(temporizador);
+        temporizador = setInterval(function () {
+            mover(indiceActual() + 1, true);
+        }, 1500);
+    }
+
+    function detener() {
+        clearInterval(temporizador);
+        temporizador = null;
+    }
+
+    anterior.addEventListener('click', function () {
+        detener();
+        mover(indiceActual() - 1, true);
+        iniciar();
+    });
+    siguiente.addEventListener('click', function () {
+        detener();
+        mover(indiceActual() + 1, true);
+        iniciar();
+    });
+    carrusel.addEventListener('mouseenter', function () {
+        pausado = true;
+        detener();
+    });
+    carrusel.addEventListener('mouseleave', function () {
+        pausado = false;
+        iniciar();
+    });
+    carrusel.addEventListener('focusin', function () {
+        pausado = true;
+        detener();
+    });
+    carrusel.addEventListener('focusout', function () {
+        if (!carrusel.contains(document.activeElement)) {
+            pausado = false;
+            iniciar();
+        }
+    });
+    window.addEventListener('resize', function () {
+        mover(indiceActual(), false);
+    });
+
+    controles.hidden = false;
+    iniciar();
+}());
+</script>
 {% endblock %}

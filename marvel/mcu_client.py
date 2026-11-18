@@ -147,7 +147,7 @@ class MCUAPIClient:
                 method='GET',
                 headers={
                     'Accept': 'application/json',
-                    'User-Agent': 'MarvelCallCenter/0.1 (Django)',
+                    'User-Agent': 'CallCenterGamer/0.1 (Django)',
                 },
             )
             try:

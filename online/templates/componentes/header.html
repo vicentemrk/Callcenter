@@ -11,41 +11,45 @@
             var tema = null;
             try { tema = window.localStorage.getItem('tema'); } catch (e) { tema = null; }
             if (tema !== 'dark' && tema !== 'light') {
-                try {
-                    tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                } catch (e) {
-                    tema = 'light';
-                }
+                /* Identidad Marvel (Bloque 2A): sin preferencia guardada el
+                   tema por defecto es el oscuro, independientemente del
+                   sistema operativo. La preferencia guardada siempre gana. */
+                tema = 'dark';
             }
             document.documentElement.setAttribute('data-theme', tema);
         })();
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'estiloHeader.css' %}?v=20261026-rol">
-    <title>{% block title %}Call Center Gamer{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'estiloHeader.css' %}?v=20261117-b2c">
+    <title>{% block title %}CallCenterGamer{% endblock %}</title>
     {% block links %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'tema.css' %}?v=20261105-tema">
-    <script src="{% static 'tema.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'tema.css' %}?v=20261117-b2c">
+    {% comment %}Capa de identidad Marvel (Bloque 2A): negro y rojo. Cargada
+    al final para sobrescribir la paleta violeta sin refactorizar los CSS
+    previos.{% endcomment %}
+    <link rel="stylesheet" href="{% static 'marca.css' %}?v=20261117-b2c">
+    <script src="{% static 'tema.js' %}?v=20261117-b2a" defer></script>
 </head>
 <body>
     <nav class="MainNav">
         <div id="NavbarIzq">
             <a href="{% if user.is_authenticated %}{% if user.rol == 'administrador' or user.rol == 'tecnico' %}{% url 'administracion' %}{% else %}{% url 'inicio' user.id %}{% endif %}{% else %}{% url 'index' %}{% endif %}" id="logo">
-                <i class="fas fa-gamepad"></i> CallCenterGamer
+                <i class="fas fa-shield-halved"></i> CallCenterGamer
             </a>
             <ul>
-                {# Catálogo Marvel: enlace para todos los roles y visitantes. #}
-                <li><a href="{% url 'marvel:catalogo' %}">Catálogo Marvel</a></li>
+                {% comment %}Navegación principal (Bloque 4C): se agrega
+                "Universo Marvel" a /marvel/, cuya landing ya existe.{% endcomment %}
+                <li><a href="{% url 'index' %}">Inicio</a></li>
+                <li><a href="{% url 'marvel:raiz' %}">Universo Marvel</a></li>
+                <li><a href="{% url 'marvel:catalogo' %}">Catálogo</a></li>
                 {% if user.is_authenticated %}
                     {% if user.rol == 'administrador' or user.rol == 'tecnico' %}
-                        <li><a href="{% url 'administracion' %}">Administración</a></li>
+                        <li><a href="{% url 'administracion' %}">Panel</a></li>
                         {% if user.rol == 'administrador' %}<li><a href="{% url 'analytics_ia' %}">Analytics IA</a></li>{% endif %}
                         {% if user.rol == 'administrador' %}<li><a href="{% url 'gestion_usuarios' %}">Gestión de Usuarios</a></li>{% endif %}
                     {% else %}
-                        <li><a href="{% url 'inicio' user.id %}">Inicio</a></li>
+                        <li><a href="{% url 'inicio' user.id %}">Mis Consultas</a></li>
                     {% endif %}
-                {% else %}
-                    <li><a href="{% url 'index' %}">Inicio</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -103,7 +107,7 @@
                 <h2>Ubicación</h2>
                 <p>Av. Américo Vespucio 974, Maipú, Región Metropolitana</p>
             </section>
-            <p class="footer-copyright">© 2026-2030 Call Center Gamer. Todos los derechos reservados.</p>
+            <p class="footer-copyright">© 2026-2030 CallCenterGamer. Todos los derechos reservados.</p>
         </div>
     </footer>
 

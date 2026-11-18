@@ -1,0 +1,819 @@
+/* ============================================================================
+   marca.css — Capa de identidad Marvel (Bloque 2A)
+   ----------------------------------------------------------------------------
+   Propósito: aplicar la identidad negro/rojo Marvel a todo el proyecto SIN
+   refactorizar las hojas de estilo existentes (estiloHeader.css, tema.css,
+   inicio.css, respuestas.css, login.css, register.css, catalogo.css y los CSS
+   de administracion). Esta capa se declara DESPUÉS de tema.css en
+   componentes/header.html, por lo que gana por orden de cascada.
+
+   Estrategia:
+   1. Tokens de marca en :root (rojo Marvel, rojo hover, negro, superficies).
+   2. Redefinición de las variables del modo oscuro que tema.css declara en
+      html[data-theme="dark"] (--accent, --bg, --surface, ...): un solo bloque
+      recolorea todos los componentes oscuros que consumen esas variables.
+   3. Redefinición de las variables locales de los módulos administrativos
+      (--admin-violeta, --an-violeta, --users-violeta) en claro y oscuro.
+   4. Sobrescritura dirigida de los literales de la paleta violeta anterior
+      (#4E31E1, #673de6, #3b22b8, rgb(52,32,150), rgba(78,49,225,*),
+      rgba(185,168,255,*)) con los mismos selectores originales.
+
+   Contraste: blanco sobre #E62429 = 4.5:1 (AA normal); blanco sobre
+   #C51F24 = 5.9:1. Texto rojo claro sobre negro oscuro >= 7:1.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. Tokens de marca (visibles en ambos temas)
+   ------------------------------------------------------------------------ */
+:root {
+    --rojo-marvel: #E62429;      /* acento y acciones */
+    --rojo-hover: #C51F24;       /* estados hover / fondo sólido seguro */
+    --rojo-profundo: #7A1216;    /* reemplaza a la tinta violeta rgb(52,32,150) */
+    --rojo-claro: #FF8A8E;       /* texto de acento sobre fondos oscuros */
+    --rojo-tinte: rgba(230, 36, 41, 0.08);   /* fondos suaves sobre claro */
+    --rojo-borde-suave: rgba(230, 36, 41, 0.35);
+    --negro-marvel: #111111;     /* superficie dominante (nav, banner) */
+    --negro-superficie: #141414;
+    --tinta-clara: #3A3A3A;      /* texto principal en claro */
+    --texto-suave-claro: #6B6B6B;
+    --borde-neutro: #E6E6E6;
+    --superficie-roja-suave: #FDF2F3;  /* reemplaza al lavanda #f6f4ff */
+    --superficie-roja-hover: #FBE9EA;  /* reemplaza al hover #ece7ff/#efeaff */
+}
+
+/* ---------------------------------------------------------------------------
+   2. Modo oscuro: redefinición de las variables que declara tema.css
+      Superficies antes violetas (#12121a, #1c1c28) -> negros neutros.
+      Acento violeta (#7c5cff) -> rojo Marvel.
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] {
+    --bg: #0F0F10;
+    --bg-soft: #141414;
+    --surface: #191919;
+    --surface-2: #202020;
+    --surface-3: #282828;
+    --border: #303030;
+    --border-soft: #262626;
+
+    --accent: var(--rojo-marvel);
+    --accent-soft: var(--rojo-claro);
+    --accent-deep: #8A1216;
+    --accent-solid: var(--rojo-hover);
+    --accent-tint: #2A1113;
+
+    background-color: var(--bg);
+}
+
+/* Variables locales de los módulos administrativos en oscuro */
+html[data-theme="dark"] .admin-wrap {
+    --admin-violeta: var(--accent);
+    --admin-violeta-oscuro: var(--accent-soft);
+    --admin-tinta: var(--text);
+    --admin-texto-suave: var(--text-muted);
+    --admin-borde: var(--border);
+    --admin-lavanda: var(--surface-2);
+}
+
+html[data-theme="dark"] .analytics-wrap {
+    --an-violeta: var(--accent);
+    --an-violeta-oscuro: var(--accent-soft);
+    --an-tinta: var(--text);
+    --an-texto-suave: var(--text-muted);
+    --an-borde: var(--border);
+    --an-lavanda: var(--surface-2);
+}
+
+html[data-theme="dark"] .users-wrap {
+    --users-violeta: var(--accent);
+    --users-violeta-oscuro: var(--accent-soft);
+    --users-tinta: var(--text);
+    --users-texto-suave: var(--text-muted);
+    --users-borde: var(--border);
+    --users-lavanda: var(--surface-2);
+}
+
+/* ---------------------------------------------------------------------------
+   3. Variables locales de los módulos administrativos en TEMA CLARO
+      (los tres módulos usaban violeta y lavanda; pasan a rojo y rojo suave)
+   ------------------------------------------------------------------------ */
+.admin-wrap {
+    --admin-violeta: var(--rojo-marvel);
+    --admin-violeta-oscuro: var(--rojo-profundo);
+    --admin-tinta: var(--tinta-clara);
+    --admin-texto-suave: var(--texto-suave-claro);
+    --admin-borde: var(--borde-neutro);
+    --admin-lavanda: var(--superficie-roja-suave);
+}
+
+.analytics-wrap {
+    --an-violeta: var(--rojo-marvel);
+    --an-violeta-oscuro: var(--rojo-profundo);
+    --an-tinta: var(--tinta-clara);
+    --an-texto-suave: var(--texto-suave-claro);
+    --an-borde: var(--borde-neutro);
+    --an-lavanda: var(--superficie-roja-suave);
+}
+
+.users-wrap {
+    --users-violeta: var(--rojo-marvel);
+    --users-violeta-oscuro: var(--rojo-profundo);
+    --users-tinta: var(--tinta-clara);
+    --users-texto-suave: var(--texto-suave-claro);
+    --users-borde: var(--borde-neutro);
+    --users-lavanda: var(--superficie-roja-suave);
+}
+
+/* ---------------------------------------------------------------------------
+   4. Botón sol/luna de la navbar (tema.css lo estiliza para ambos temas)
+   ------------------------------------------------------------------------ */
+.tema-toggle {
+    background-color: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.tema-toggle:hover {
+    background-color: var(--rojo-hover);
+    border-color: var(--rojo-claro);
+    color: #ffffff;
+}
+
+/* ---------------------------------------------------------------------------
+   5. Barra de navegación y footer (estiloHeader.css, tema claro)
+      Solo colores: la estructura del header y la posición del footer son
+      de los bloques 2B/2C y NO se tocan aquí.
+   ------------------------------------------------------------------------ */
+.MainNav {
+    background-color: var(--negro-marvel);
+    border-bottom: 1px solid var(--rojo-profundo);
+}
+
+#NavbarIzq ul li a:hover,
+#NavbarDer ul li a:hover,
+.logout-btn:hover {
+    background-color: var(--rojo-marvel);
+}
+
+.site-footer {
+    background-color: var(--negro-marvel);
+    border-top-color: var(--rojo-marvel);
+}
+
+.footer-section h2 {
+    color: var(--rojo-marvel);
+}
+
+/* Footer en oscuro (reemplaza las reglas violetas de tema.css, sección 4) */
+html[data-theme="dark"] .site-footer {
+    background-color: var(--negro-superficie);
+    border-color: rgba(230, 36, 41, 0.3);
+    border-top-color: var(--rojo-marvel);
+}
+
+/* ---------------------------------------------------------------------------
+   6. Landing actual (index + estiloHeader.css, tema claro)
+      El texto del banner se recolorea; el contenido de la página se revisa
+      en el bloque 2C.
+   ------------------------------------------------------------------------ */
+.Banner {
+    background-color: var(--negro-marvel);
+}
+
+.btnPrincipal {
+    background-color: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.btnPrincipal:hover {
+    background-color: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+.finalBody a.btnPrincipal:focus-visible {
+    outline-color: var(--rojo-marvel);
+}
+
+/* Oscuro: tema.css pinta el borde del CTA con literales violetas
+   (#7c5cff / #b9a8ff); la capa de marca los pasa a rojo Marvel. */
+html[data-theme="dark"] .btnPrincipal {
+    background-color: var(--accent-solid);
+    border-color: var(--rojo-hover);
+}
+
+html[data-theme="dark"] .btnPrincipal:hover {
+    background-color: var(--accent);
+    border-color: var(--rojo-profundo);
+}
+
+.dCard h1,
+.finalBody h1 {
+    color: var(--rojo-profundo);
+}
+
+/* Banner en oscuro (tema.css pintaba #150f2e) */
+html[data-theme="dark"] .Banner {
+    background-color: #0D0D0D;
+}
+
+/* ---------------------------------------------------------------------------
+   7. Inicio del cliente (online/static/inicio.css, tema claro)
+   ------------------------------------------------------------------------ */
+#Titulo,
+.Preguntas-titulo,
+.InsPreguntas-cabecera h2 {
+    color: var(--rojo-profundo);
+}
+
+.Preguntas {
+    border-left-color: var(--rojo-marvel);
+    color: var(--rojo-profundo);
+}
+
+.Preguntas:hover {
+    border-left-color: var(--rojo-marvel);
+}
+
+.Preguntas a:focus-visible {
+    outline-color: var(--rojo-marvel);
+}
+
+.MainPreguntas,
+.MainPreguntar {
+    border-color: var(--rojo-profundo);
+}
+
+.InsPreguntas {
+    color: var(--rojo-profundo);
+}
+
+.InsPreguntas input[type="text"],
+.InsPreguntas textarea,
+.InsPreguntas select {
+    border-color: var(--rojo-marvel);
+}
+
+.InsPreguntas input[type="text"]:focus,
+.InsPreguntas textarea:focus,
+.InsPreguntas select:focus {
+    outline-color: var(--rojo-marvel);
+}
+
+.InsPreguntas input[type="submit"] {
+    background-color: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.InsPreguntas input[type="submit"]:hover {
+    background-color: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+.InsPreguntas input[type="submit"]:focus-visible {
+    outline-color: var(--rojo-marvel);
+}
+
+.ia-privacidad-aviso {
+    background-color: var(--negro-marvel);
+    border-color: var(--rojo-marvel);
+    color: #ffffff;
+}
+
+.asistente-ia {
+    background-color: var(--negro-marvel);
+    border-color: var(--rojo-marvel);
+    color: #ffffff;
+}
+
+.asistente-ia-input {
+    border-color: #D9D9D9;
+}
+
+.asistente-ia-boton,
+.crear-pregunta-ia-boton {
+    background-color: var(--rojo-marvel);
+    border-color: var(--rojo-profundo);
+}
+
+.asistente-ia-boton:hover,
+.crear-pregunta-ia-boton:hover {
+    background-color: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+.resultados-ia {
+    border-left-color: var(--rojo-marvel);
+}
+
+.respuesta-ia-titulo i {
+    color: var(--rojo-marvel);
+}
+
+.recomendacion {
+    border-left-color: var(--rojo-marvel);
+}
+
+.similitud {
+    background: var(--rojo-marvel);
+}
+
+/* Badge de elemento Marvel (C1.3) */
+.Preguntas-marvel {
+    background: var(--rojo-tinte);
+    color: var(--rojo-hover);
+}
+
+.Preguntas-vacio {
+    border-color: var(--rojo-borde-suave);
+}
+
+/* ---------------------------------------------------------------------------
+   8. Chat de respuestas (online/static/respuestas.css, tema claro)
+   ------------------------------------------------------------------------ */
+.MainRespuestas,
+.divPregunta,
+.divFondo,
+.CambiarFondo {
+    border-color: var(--rojo-profundo);
+}
+
+#Titulopreg,
+.divPregunta h2 {
+    color: var(--rojo-profundo);
+}
+
+.dRespuestas {
+    background-color: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+.dRespuestasOtro h1 {
+    color: var(--rojo-profundo);
+}
+
+.chat-cabecera {
+    border-left-color: var(--rojo-marvel);
+}
+
+.chat-cabecera-titulo {
+    color: var(--rojo-profundo);
+}
+
+.chat-cabecera-datos i {
+    color: var(--rojo-marvel);
+}
+
+.chat-volver {
+    background: var(--superficie-roja-suave);
+    border-color: rgba(230, 36, 41, 0.3);
+    color: var(--rojo-hover);
+}
+
+.chat-volver:hover {
+    background: var(--superficie-roja-hover);
+    border-color: rgba(230, 36, 41, 0.55);
+    color: var(--rojo-hover);
+}
+
+.chat-volver:focus-visible,
+.chat-cabecera a:focus-visible,
+#btnSend:focus-visible,
+.chat-marvel-enlace:focus-visible {
+    outline-color: var(--rojo-marvel);
+}
+
+.chat-info-fila {
+    border-bottom-color: rgba(230, 36, 41, 0.25);
+}
+
+.chat-marvel-enlace {
+    color: var(--rojo-hover);
+}
+
+.chat-marvel-enlace:hover {
+    color: var(--rojo-profundo);
+}
+
+#btnSend:hover {
+    background-color: var(--superficie-roja-hover);
+}
+
+/* ---------------------------------------------------------------------------
+   9. Login y registro (login.css / register.css, tema claro)
+   ------------------------------------------------------------------------ */
+.mainLogin h2,
+.MainRegister h2 {
+    color: var(--rojo-profundo);
+}
+
+.mainLogin p a,
+.MainRegister p a {
+    color: var(--rojo-hover);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline-color: var(--rojo-marvel);
+    border-color: var(--rojo-marvel);
+}
+
+input[type="submit"] {
+    background-color: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+input[type="submit"]:hover {
+    background-color: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+input[type="submit"]:focus-visible {
+    outline-color: var(--rojo-marvel);
+}
+
+/* ---------------------------------------------------------------------------
+   10. Panel de administración (administracion/static/index.css, claro)
+       La mayoría del violeta ya cae al redefinir --admin-violeta; aquí van
+       los literales que quedan.
+   ------------------------------------------------------------------------ */
+.admin-wrap #Titulo {
+    color: var(--rojo-profundo);
+}
+
+.admin-btn {
+    background: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.admin-btn:hover {
+    background: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+.admin-field input[type="search"]:focus,
+.admin-field select:focus {
+    outline-color: var(--rojo-marvel);
+    border-color: var(--rojo-marvel);
+}
+
+.admin-chip {
+    border-color: rgba(230, 36, 41, 0.25);
+}
+
+.admin-chip:hover {
+    background: var(--superficie-roja-hover);
+    border-color: rgba(230, 36, 41, 0.55);
+}
+
+.admin-categoria-marvel {
+    background: var(--rojo-tinte);
+    color: var(--rojo-hover);
+}
+
+.admin-stat:nth-child(4) {
+    border-left-color: var(--rojo-marvel);
+}
+
+.admin-vacio {
+    border-color: var(--rojo-borde-suave);
+}
+
+.admin-page-btn:hover,
+.admin-page-num:hover {
+    border-color: rgba(230, 36, 41, 0.5);
+}
+
+.admin-icon-btn:hover {
+    background: var(--superficie-roja-hover);
+}
+
+.admin-trend {
+    border-left-color: var(--rojo-marvel);
+}
+
+/* ---------------------------------------------------------------------------
+   11. Analytics IA (administracion/static/analytics.css, claro)
+   ------------------------------------------------------------------------ */
+.analytics-btn {
+    background: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.analytics-btn:hover {
+    background: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+.periodo-opcion:hover {
+    background: var(--superficie-roja-hover);
+}
+
+.categoria-barra-fill {
+    background: var(--rojo-marvel);
+}
+
+.categoria-card {
+    border-left-color: var(--rojo-marvel);
+}
+
+.panel-tag {
+    border-color: rgba(230, 36, 41, 0.25);
+}
+
+.analytics-vacio {
+    border-color: var(--rojo-borde-suave);
+}
+
+/* ---------------------------------------------------------------------------
+   12. Gestión de usuarios (administracion/static/gestion.css, claro)
+   ------------------------------------------------------------------------ */
+.users-field input[type="search"]:focus,
+.users-field select:focus {
+    outline-color: var(--rojo-marvel);
+    border-color: var(--rojo-marvel);
+}
+
+.users-btn {
+    background: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.users-btn:hover {
+    background: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+#btnModif:hover,
+.users-btn-accion:hover {
+    background: var(--superficie-roja-hover);
+    border-color: rgba(230, 36, 41, 0.3);
+}
+
+.users-vacio {
+    border-color: var(--rojo-borde-suave);
+}
+
+/* ---------------------------------------------------------------------------
+   13. Modificar pregunta (administracion/static/modificar.css, claro)
+   ------------------------------------------------------------------------ */
+.MainPreguntar {
+    border-color: var(--rojo-profundo);
+}
+
+.InsPreguntas {
+    color: var(--rojo-profundo);
+}
+
+#TituloMod {
+    color: var(--rojo-profundo);
+}
+
+.InsPreguntas input[type="text"],
+.InsPreguntas textarea {
+    border-color: var(--rojo-marvel);
+}
+
+.InsPreguntas input[type="text"]:focus,
+.InsPreguntas textarea:focus {
+    outline-color: var(--rojo-marvel);
+    border-color: var(--rojo-marvel);
+}
+
+.InsPreguntas input[type="submit"] {
+    background-color: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.InsPreguntas input[type="submit"]:hover {
+    background-color: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+}
+
+.InsPreguntas input[type="submit"]:focus-visible {
+    outline-color: var(--rojo-marvel);
+}
+
+/* ---------------------------------------------------------------------------
+   14. Catálogo Marvel (marvel/static/catalogo.css, claro)
+   ------------------------------------------------------------------------ */
+.MarvelContenedor h1,
+.MarvelContenedor h2,
+.MarvelTarjeta,
+.MarvelPaginador a {
+    color: var(--rojo-profundo);
+}
+
+.MarvelCabecera h1 i,
+.MarvelTarjeta-meta i {
+    color: var(--rojo-marvel);
+}
+
+.MarvelFiltros button {
+    background: var(--rojo-marvel);
+}
+
+.MarvelFiltros button:hover {
+    background: var(--rojo-hover);
+}
+
+.MarvelFiltros-limpiar {
+    color: var(--rojo-hover);
+}
+
+.MarvelTarjeta {
+    border-left-color: var(--rojo-marvel);
+}
+
+.MarvelTarjeta:hover,
+.MarvelPaginador a:hover {
+    border-left-color: var(--rojo-marvel);
+}
+
+.MarvelTipo-movie {
+    color: var(--rojo-hover);
+    border-color: rgba(230, 36, 41, 0.4);
+    background: var(--superficie-roja-suave);
+}
+
+.MarvelVacio {
+    border-color: var(--rojo-borde-suave);
+}
+
+.MarvelDetalle-volver a {
+    color: var(--rojo-hover);
+}
+
+.MarvelDetalle {
+    border-left-color: var(--rojo-marvel);
+}
+
+.MarvelBoton-consulta {
+    background: var(--rojo-marvel);
+    border-color: var(--rojo-hover);
+}
+
+.MarvelBoton-consulta:hover {
+    background: var(--rojo-hover);
+    border-color: var(--rojo-profundo);
+    color: #ffffff;
+}
+
+.MarvelBoton-consulta:focus-visible {
+    outline-color: var(--rojo-marvel);
+}
+
+.MarvelBoton-consulta-login {
+    background: #ffffff;
+    color: var(--rojo-hover);
+}
+
+.MarvelBoton-consulta-login:hover {
+    background: var(--superficie-roja-suave);
+    color: var(--rojo-profundo);
+}
+
+/* ---------------------------------------------------------------------------
+   15. Literales violetas del MODO OSCURO que tema.css define con valores
+       fijos (no consumen variables). Se replican sus selectores exactos,
+       que pierden por orden de cascada al cargarse marca.css al final.
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] .MainNav {
+    background-color: var(--negro-superficie);
+    border-bottom: 1px solid var(--rojo-profundo);
+}
+
+html[data-theme="dark"] #NavbarIzq ul li a:hover,
+html[data-theme="dark"] #NavbarDer ul li a:hover,
+html[data-theme="dark"] .logout-btn:hover {
+    background-color: var(--surface-3);
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #3A3A3A;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #4A4A4A;
+}
+
+html[data-theme="dark"] ::selection {
+    background-color: var(--rojo-profundo);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .Preguntas {
+    border-left-color: var(--accent-deep);
+}
+
+html[data-theme="dark"] .asistente-ia {
+    background-color: var(--surface-2);
+    border-color: var(--accent);
+}
+
+html[data-theme="dark"] .ia-privacidad-aviso {
+    background-color: var(--accent-tint);
+    border-color: var(--accent);
+}
+
+html[data-theme="dark"] .dRespuestas {
+    background-color: #A01418;
+    border: 1px solid var(--accent);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .dRespuestas p {
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .dRespuestas h4 {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+html[data-theme="dark"] table thead tr {
+    background: #A01418;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .admin-chip {
+    border-color: rgba(230, 36, 41, 0.35);
+}
+
+html[data-theme="dark"] .admin-chip:hover {
+    border-color: rgba(230, 36, 41, 0.6);
+}
+
+html[data-theme="dark"] .admin-btn-outline {
+    border-color: rgba(230, 36, 41, 0.5);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-btn-outline:hover {
+    border-color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-categoria-marvel {
+    background-color: rgba(230, 36, 41, 0.14);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-vacio,
+html[data-theme="dark"] .analytics-vacio,
+html[data-theme="dark"] .users-vacio,
+html[data-theme="dark"] .Preguntas-vacio {
+    border-color: rgba(230, 36, 41, 0.4);
+}
+
+html[data-theme="dark"] .admin-vacio i,
+html[data-theme="dark"] .analytics-vacio i,
+html[data-theme="dark"] .users-vacio i,
+html[data-theme="dark"] .Preguntas-vacio i,
+html[data-theme="dark"] .chat-sin-mensajes i {
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .admin-page-btn:hover,
+html[data-theme="dark"] .admin-page-num:hover {
+    border-color: rgba(230, 36, 41, 0.6);
+}
+
+html[data-theme="dark"] .panel-tag {
+    border-color: rgba(230, 36, 41, 0.35);
+}
+
+html[data-theme="dark"] .users-btn-outline {
+    border-color: rgba(230, 36, 41, 0.5);
+    color: var(--accent-soft);
+}
+
+html[data-theme="dark"] .users-btn-outline:hover {
+    border-color: rgba(230, 36, 41, 0.7);
+}
+
+html[data-theme="dark"] .users-btn-accion:hover {
+    border-color: rgba(230, 36, 41, 0.4);
+}
+
+html[data-theme="dark"] .chat-volver {
+    border-color: rgba(230, 36, 41, 0.45);
+}
+
+html[data-theme="dark"] .chat-volver:hover {
+    background-color: var(--accent-tint);
+    border-color: rgba(230, 36, 41, 0.7);
+}
+
+html[data-theme="dark"] .Preguntas-marvel {
+    background-color: rgba(230, 36, 41, 0.14);
+    color: var(--accent-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   16. Notas de alcance
+   ----------------------------------------------------------------------------
+   - No se modifica la estructura del header ni el contenido textual.
+   - El posicionamiento del footer se corrigio en el Bloque 2B
+     (estiloHeader.css): esta capa solo le aporta los colores de marca.
+   - No se modifica ninguna hoja de estilo existente salvo lo previsto: todo
+     el cambio de identidad vive en esta capa, cargada al final de
+     componentes/header.html.
+   - El contenido textual de la landing (texto "Call of Gamers", textos
+     gamer) pertenece al bloque 2C y no se toca aquí.
+   ========================================================================== */

@@ -778,6 +778,19 @@
     color: #9b1c1c;
 }
 
+/* Badge de tecnico asignado (Bloque 6B), mismo lenguaje que el panel */
+.admin-badge-tecnico {
+    background: #ece9fb;
+    color: #4E31E1;
+}
+
+.admin-badge-sin-tecnico {
+    background: transparent;
+    border: 1px dashed currentColor;
+    color: #6c6880;
+    font-weight: 600;
+}
+
 @media (max-width: 1400px) {
     .chat-cabecera {
         width: min(1280px, calc(100% - 24px));

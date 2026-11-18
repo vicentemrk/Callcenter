@@ -86,9 +86,21 @@ def construir_contexto(request):
     estado = request.GET.get('estado')
     prioridad = request.GET.get('prioridad')
     categoria = request.GET.get('categoria')
+    # Filtro por tecnico asignado (Bloque 6B): 'sin_asignar', el id de
+    # un tecnico o vacio. Los valores invalidos se ignoran (patron del
+    # preseleccionado de elemento en Inicio), nunca generan consultas
+    # inseguras.
+    tecnico = request.GET.get('tecnico', '') or ''
+    if tecnico and tecnico != 'sin_asignar' and not tecnico.isdigit():
+        tecnico = ''
+
+    tecnicos_disponibles = (
+        Usuario.objects.filter(rol='tecnico', activo=True).order_by('usuario')
+    )
 
     preguntas = (
-        Preguntas.objects.select_related('Usuario')
+        Preguntas.objects
+        .select_related('Usuario', 'tecnico_asignado')
         .annotate(num_respuestas=Count('respuesta'))
     )
     if estado:
@@ -97,6 +109,10 @@ def construir_contexto(request):
         preguntas = preguntas.filter(prioridad=prioridad)
     if categoria:
         preguntas = preguntas.filter(categoria=categoria)
+    if tecnico == 'sin_asignar':
+        preguntas = preguntas.filter(tecnico_asignado__isnull=True)
+    elif tecnico:
+        preguntas = preguntas.filter(tecnico_asignado_id=int(tecnico))
     if q:
         preguntas = preguntas.filter(
             Q(Titulo__icontains=q)
@@ -125,9 +141,11 @@ def construir_contexto(request):
         'estados': Preguntas.ESTADOS,
         'prioridades': Preguntas.PRIORIDADES,
         'categorias': Preguntas._meta.get_field('categoria').choices,
+        'tecnicos_disponibles': tecnicos_disponibles,
         'filtros': {
             'estado': estado or '',
             'prioridad': prioridad or '',
             'categoria': categoria or '',
+            'tecnico': tecnico,
         },
     }

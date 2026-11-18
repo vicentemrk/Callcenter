@@ -1,6 +1,16 @@
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from marvel.constants import TIPOS_ELEMENTO
+from marvel.constants import (
+    CALIFICACION_MAXIMA,
+    CALIFICACION_MINIMA,
+    TIPOS_ELEMENTO,
+    TIPOS_RESEÑABLES,
+)
+from marvel.validators import validar_referencia_tematica
 
 
 class ElementoCatalogo(models.Model):
@@ -82,3 +92,114 @@ class ElementoCatalogo(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} #{self.mcu_id}: {self.nombre}"
+
+
+class Resena(models.Model):
+    """Resena de un usuario sobre una pelicula o serie del catalogo.
+
+    Reglas aprobadas (Bloque 5B, decisiones del 5A):
+    - Solo elementos de tipo movie/tvshow, activos y existentes.
+    - Calificacion obligatoria 1..5; sin comentario adicional.
+    - Referencia tematica obligatoria de 10 a 200 caracteres.
+    - Maximo una reseña por (elemento, usuario): UniqueConstraint.
+    - Se publica visible por defecto; ocultar/restaurar es de
+      moderacion (Bloque 5D) y sera exclusivo del administrador.
+    - No hay edicion ni eliminacion por el autor en este ciclo.
+
+    Que protege cada capa:
+    - BASE DE DATOS: unicidad (elemento, usuario) — la constraint se
+      crea en la migracion y rechaza duplicados incluso si se salva
+      sin pasar por full_clean().
+    - VALIDACION DE APLICACION (clean/full_clean): calificacion 1..5,
+      referencia tematica, elemento activo y reseñable, autor cliente.
+      save() de Django NO llama full_clean(); la capa de vistas
+      (Bloque 5C) usara el formulario, que ejecuta full_clean, y la
+      unicidad queda garantizada ademas por la base.
+    """
+
+    elemento = models.ForeignKey(
+        ElementoCatalogo,
+        on_delete=models.CASCADE,
+        related_name='resenas',
+        verbose_name='Elemento reseñado',
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='resenas',
+        verbose_name='Autor de la reseña',
+    )
+    calificacion = models.PositiveSmallIntegerField(
+        verbose_name='Calificación',
+        validators=[
+            MinValueValidator(CALIFICACION_MINIMA),
+            MaxValueValidator(CALIFICACION_MAXIMA),
+        ],
+    )
+    referencia_tematica = models.CharField(
+        verbose_name='Referencia temática',
+        max_length=200,
+        validators=[validar_referencia_tematica],
+        help_text=(
+            'Cita, personaje, escena, saga o elemento de Marvel al que '
+            'refiere la reseña (10 a 200 caracteres).'
+        ),
+    )
+    visible = models.BooleanField(
+        verbose_name='Visible',
+        default=True,
+        db_index=True,
+    )
+    fecha_publicacion = models.DateTimeField(
+        verbose_name='Fecha de publicación',
+        auto_now_add=True,
+    )
+
+    def clean(self):
+        """Validaciones de aplicacion a nivel de modelo.
+
+        Se ejecutan con instancia.full_clean(); save() no las llama
+        automaticamente, por eso 5C hara pasar por el formulario.
+        """
+        super().clean()
+
+        # Normalizacion coherente con el resto del proyecto (trim).
+        self.referencia_tematica = (self.referencia_tematica or '').strip()
+
+        if self.elemento_id:
+            elemento = self.elemento
+            if elemento.tipo not in TIPOS_RESEÑABLES:
+                raise ValidationError({
+                    'elemento': _(
+                        'Solo se pueden reseñar películas y series del catálogo.'
+                    ),
+                })
+            if not elemento.activo:
+                raise ValidationError({
+                    'elemento': _(
+                        'El elemento está inactivo y no admite reseñas.'
+                    ),
+                })
+
+        if self.usuario_id and self.usuario.rol != 'cliente':
+            raise ValidationError({
+                'usuario': _('Solo los clientes pueden publicar reseñas.'),
+            })
+
+    class Meta:
+        verbose_name = 'Reseña'
+        verbose_name_plural = 'Reseñas'
+        ordering = ['-fecha_publicacion']
+        db_table = 'marvel_resena'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['elemento', 'usuario'],
+                name='resena_elemento_usuario_unique',
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"Reseña de {self.usuario} sobre {self.elemento.nombre} "
+            f"({self.calificacion}/5)"
+        )

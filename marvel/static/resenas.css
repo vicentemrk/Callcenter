@@ -1,0 +1,420 @@
+/* ============================================================================
+   resenas.css — Reseñas en la ficha de detalle (Bloque 5C)
+   ----------------------------------------------------------------------------
+   Estilos de la seccion "Reseñas" de /marvel/<pk>/. Consume los tokens de
+   marca.css (:root: --rojo-marvel, --rojo-profundo, --rojo-claro, ...) y,
+   en oscuro, las variables de tema.css redefinidas por marca.css (2A).
+
+   La clase util .visually-hidden ya existe en catalogo.css (cargado en la
+   misma ficha): no se duplica. Fuentes Poppins/Heebo/DM Sans ya cargadas
+   por estiloHeader.css. Selector de estrellas accesible: radios reales
+   con etiquetas (sin JavaScript).
+   ========================================================================== */
+
+:root {
+    --resenas-superficie: #FFFFFF;
+    --resenas-texto: var(--tinta-clara);
+    --resenas-suave: var(--texto-suave-claro);
+    --resenas-borde: var(--borde-neutro);
+    --resenas-estrella: #C8A415;       /* dorado legible sobre claro */
+    --resenas-estrella-apagada: #C9C9C9;
+}
+
+html[data-theme="dark"] {
+    --resenas-superficie: var(--surface);
+    --resenas-texto: #E8E8F0;
+    --resenas-suave: #A8A8BD;
+    --resenas-borde: var(--border);
+    --resenas-estrella: #F2C94C;
+    --resenas-estrella-apagada: #4A4A4A;
+}
+
+/* ---------------------------------------------------------------------------
+   1. Seccion y listado
+   ------------------------------------------------------------------------ */
+.resenas {
+    width: 100%;
+    max-width: 1160px;
+    margin: clamp(28px, 4vw, 48px) auto 0;
+    padding: 0 clamp(16px, 4vw, 40px);
+}
+
+.resenas-titulo {
+    margin: 0 0 16px;
+    color: var(--rojo-profundo);
+    font-family: 'Heebo', sans-serif;
+    font-size: clamp(22px, 2.6vw, 30px);
+    font-weight: 800;
+}
+
+html[data-theme="dark"] .resenas-titulo {
+    color: var(--rojo-claro);
+}
+
+.resenas-item {
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    border: 1px solid var(--resenas-borde);
+    border-radius: 12px;
+    background-color: var(--resenas-superficie);
+}
+
+.resenas-item-oculta {
+    border-color: var(--rojo-borde-suave);
+    background-color: var(--superficie-roja-suave);
+}
+
+html[data-theme="dark"] .resenas-item-oculta {
+    background-color: var(--accent-tint, #2A1113);
+}
+
+.resenas-item-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-bottom: 8px;
+}
+
+.resenas-autor {
+    color: var(--resenas-texto);
+    font-family: 'Heebo', sans-serif;
+    font-weight: 700;
+}
+
+.resenas-fecha {
+    color: var(--resenas-suave);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85em;
+}
+
+.resenas-referencia {
+    margin: 6px 0 0;
+    color: var(--resenas-texto);
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* Estrellas del listado (solo lectura). */
+.resenas-lista-estrellas {
+    display: inline-flex;
+    gap: 2px;
+    color: var(--resenas-estrella);
+    font-size: 0.95em;
+    vertical-align: middle;
+}
+
+.resenas-lista-estrellas .estrella-apagada {
+    color: var(--resenas-estrella-apagada);
+}
+
+/* Etiqueta EXACTA "Oculta por moderación" (5C/5D). */
+.resenas-badge-oculta {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background-color: var(--rojo-profundo);
+    color: #FFFFFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.78em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+/* ---------------------------------------------------------------------------
+   2. Formulario de publicacion
+   ------------------------------------------------------------------------ */
+.resenas-form {
+    padding: 20px 22px;
+    margin: 22px 0 26px;
+    border: 1px solid var(--resenas-borde);
+    border-radius: 12px;
+    background-color: var(--resenas-superficie);
+}
+
+.resenas-form-leyenda,
+.resenas-campo-titulo {
+    display: block;
+    margin: 0 0 10px;
+    color: var(--resenas-texto);
+    font-family: 'Heebo', sans-serif;
+    font-size: 1.02em;
+    font-weight: 700;
+}
+
+.resenas-campo textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--resenas-borde);
+    border-radius: 8px;
+    background-color: var(--resenas-superficie);
+    color: var(--resenas-texto);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95em;
+    resize: vertical;
+}
+
+.resenas-campo textarea:focus-visible {
+    outline: 2px solid var(--rojo-marvel);
+    outline-offset: 2px;
+}
+
+.resenas-ayuda {
+    margin: 6px 0 0;
+    color: var(--resenas-suave);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82em;
+}
+
+/* Mensaje de error junto al campo correspondiente. */
+.resenas-error {
+    margin: 6px 0 0;
+    color: var(--rojo-marvel);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+/* Selector de estrellas: radios reales (accesibles por teclado) con
+   etiquetas estrella. DOM 1..5 + fila invertida: al elegir 3 quedan
+   llenas las estrellas 3, 4 y 5 (a la izquierda). */
+.resenas-estrellas {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 2px;
+    padding: 0;
+    border: 0;
+    margin: 0 0 6px;
+}
+
+.resenas-estrella-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.resenas-estrella {
+    cursor: pointer;
+    color: var(--resenas-estrella-apagada);
+    font-size: 26px;
+    line-height: 1;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+/* Seleccion: toda estrella DESPUES del radio marcado (valores mayores
+   en DOM = posiciones a la izquierda por row-reverse) se llena. */
+.resenas-estrella-input:checked ~ .resenas-estrella {
+    color: var(--resenas-estrella);
+}
+
+/* Previsualizacion al pasar el mouse (sin JavaScript). */
+.resenas-estrella:hover,
+.resenas-estrella:hover ~ .resenas-estrella {
+    color: var(--resenas-estrella);
+}
+
+/* Foco por teclado visible sobre la estrella del radio enfocado. */
+.resenas-estrella-input:focus-visible + .resenas-estrella {
+    outline: 2px solid var(--rojo-marvel);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+.resenas-estrellas + .resenas-error {
+    margin-top: 2px;
+}
+
+.resenas-enviar {
+    margin-top: 14px;
+    /* Reutiliza la identidad de marca de los CTAs del proyecto. */
+    display: inline-block;
+    padding: 10px 28px;
+    border: 0;
+    border-radius: 6px;
+    background-color: var(--rojo-marvel);
+    color: #FFFFFF;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: bold;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.resenas-enviar:hover {
+    background-color: var(--rojo-hover);
+}
+
+.resenas-enviar:focus-visible {
+    outline: 2px solid var(--rojo-profundo);
+    outline-offset: 3px;
+}
+
+html[data-theme="dark"] .resenas-enviar:focus-visible {
+    outline-color: var(--rojo-claro);
+}
+
+/* ---------------------------------------------------------------------------
+   3. Avisos y estados
+   ------------------------------------------------------------------------ */
+/* Promedio de la ficha (solo reseñas visibles; Bloque 5D). */
+.resenas-promedio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 12px 16px;
+    margin: 0 0 22px;
+    border: 1px solid var(--rojo-borde-suave);
+    border-radius: 10px;
+    background-color: var(--superficie-roja-suave);
+    color: var(--resenas-texto);
+    font-family: 'Poppins', sans-serif;
+}
+
+html[data-theme="dark"] .resenas-promedio {
+    background-color: var(--accent-tint, #2A1113);
+}
+
+.resenas-promedio strong {
+    color: var(--rojo-profundo);
+    font-family: 'Heebo', sans-serif;
+    font-size: 1.05em;
+}
+
+html[data-theme="dark"] .resenas-promedio strong {
+    color: var(--rojo-claro);
+}
+
+.resenas-promedio-total {
+    color: var(--resenas-suave);
+    font-size: 0.9em;
+}
+
+.resenas-promedio-vacio {
+    margin: 0 0 22px;
+    color: var(--resenas-suave);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9em;
+}
+
+/* Botones de moderación (visibles solo para admin desde el servidor). */
+.resenas-moderar {
+    margin: 10px 0 0;
+}
+
+.resenas-boton-moderar {
+    display: inline-block;
+    padding: 7px 18px;
+    border: 1px solid var(--rojo-borde-suave);
+    border-radius: 6px;
+    background-color: transparent;
+    color: var(--rojo-profundo);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: bold;
+    font-size: 0.88em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.resenas-boton-moderar:hover {
+    background-color: var(--rojo-marvel);
+    border-color: var(--rojo-marvel);
+    color: #FFFFFF;
+}
+
+.resenas-boton-moderar:focus-visible {
+    outline: 2px solid var(--rojo-marvel);
+    outline-offset: 3px;
+}
+
+html[data-theme="dark"] .resenas-boton-moderar {
+    color: var(--rojo-claro);
+}
+
+.resenas-aviso,
+.resenas-exito,
+.resenas-login {
+    padding: 12px 16px;
+    margin: 0 0 22px;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95em;
+}
+
+.resenas-aviso {
+    border: 1px solid var(--rojo-borde-suave);
+    background-color: var(--superficie-roja-suave);
+    color: var(--resenas-texto);
+}
+
+html[data-theme="dark"] .resenas-aviso {
+    background-color: var(--accent-tint, #2A1113);
+}
+
+.resenas-exito {
+    border: 1px solid var(--rojo-borde-suave);
+    background-color: var(--superficie-roja-hover);
+    color: var(--rojo-profundo);
+    font-weight: 600;
+}
+
+html[data-theme="dark"] .resenas-exito {
+    background-color: var(--accent-tint, #2A1113);
+    color: var(--rojo-claro);
+}
+
+.resenas-login {
+    border: 1px dashed var(--rojo-borde-suave);
+    background-color: transparent;
+    color: var(--resenas-texto);
+}
+
+.resenas-login a {
+    color: var(--rojo-profundo);
+    font-weight: 600;
+}
+
+html[data-theme="dark"] .resenas-login a {
+    color: var(--rojo-claro);
+}
+
+.resenas-login a:focus-visible {
+    outline: 2px solid var(--rojo-marvel);
+    outline-offset: 3px;
+}
+
+.resenas-vacio {
+    padding: 24px;
+    border: 1px dashed var(--resenas-borde);
+    border-radius: 12px;
+    color: var(--resenas-suave);
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+}
+
+/* ---------------------------------------------------------------------------
+   4. Responsive
+   ------------------------------------------------------------------------ */
+@media (max-width: 600px) {
+    .resenas-form,
+    .resenas-item {
+        padding: 14px;
+    }
+
+    .resenas-estrella {
+        font-size: 24px;
+    }
+}
+
+/* Sin animaciones de desplazamiento: solo microtransiciones de color,
+   que respetan prefers-reduced-motion de forma automatica al apagar
+   transitions el usuario; no hay keyframes en este archivo. */
+@media (prefers-reduced-motion: reduce) {
+    .resenas-estrella,
+    .resenas-enviar,
+    .resenas-boton-moderar {
+        transition: none;
+    }
+}

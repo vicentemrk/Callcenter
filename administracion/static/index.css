@@ -580,6 +580,51 @@
     color: #9b1c1c;
 }
 
+/* --- Asignacion de tecnico (Bloque 6B) ------------------------------------ */
+
+.admin-badge-tecnico {
+    background: #ece9fb;
+    color: #4E31E1;
+}
+
+.admin-badge-sin-tecnico {
+    background: transparent;
+    border: 1px dashed currentColor;
+    color: #6c6880;
+    font-weight: 600;
+}
+
+.admin-tecnico-propio {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 0.76em;
+    font-weight: 700;
+    color: var(--admin-texto-suave);
+}
+
+.admin-asignar-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.admin-asignar-form select {
+    max-width: 150px;
+    padding: 3px 6px;
+    border: 1px solid var(--admin-borde);
+    border-radius: 6px;
+    background: var(--admin-lavanda);
+    color: var(--admin-tinta);
+    font-size: 0.78em;
+    font-family: inherit;
+}
+
+.admin-btn-mini {
+    padding: 4px 10px;
+    font-size: 0.78em;
+}
+
 /* --- Acciones por fila ---------------------------------------------------- */
 
 .admin-actions-cell {

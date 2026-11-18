@@ -32,7 +32,7 @@
             <form method="get" action="" class="asistente-ia-form">
                 <div class="asistente-ia-campos">
                     <label class="visually-hidden" for="buscar-ayuda">Consulta para el asistente</label>
-                    <input id="buscar-ayuda" type="text" name="buscar_ayuda" maxlength="250" placeholder="¿En qué puedo ayudarte? Ej: problema con internet, juego lento..."
+                    <input id="buscar-ayuda" type="text" name="buscar_ayuda" maxlength="250" placeholder="¿En qué puedo ayudarte? Ej: ¿Cuándo llega la película al catálogo?..."
                            value="{{ request.GET.buscar_ayuda|default:'' }}"
                            class="asistente-ia-input">
                     <button type="submit" class="asistente-ia-boton">
@@ -41,7 +41,7 @@
                 </div>
             </form>
             <p class="asistente-ia-descripcion">
-                Nuestra IA puede ayudarte con problemas de hardware, software, conexión y más.
+                Nuestra IA puede ayudarte con consultas sobre películas, series, cómics, videojuegos de Marvel, merchandising y más.
             </p>
             <div class="ia-privacidad-aviso" role="note">
                 <strong><i class="fas fa-info-circle" aria-hidden="true"></i> Uso responsable del asistente</strong>

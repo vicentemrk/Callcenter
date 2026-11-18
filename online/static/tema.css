@@ -214,13 +214,13 @@ html[data-theme="dark"] .contRight p {
     color: #c6c1e0;
 }
 
-html[data-theme="dark"] #btnIngresar {
+html[data-theme="dark"] .btnPrincipal {
     background-color: var(--accent-solid);
     border-color: #7c5cff;
     color: #ffffff;
 }
 
-html[data-theme="dark"] #btnIngresar:hover {
+html[data-theme="dark"] .btnPrincipal:hover {
     background-color: var(--accent);
     border-color: #b9a8ff;
 }
@@ -973,6 +973,16 @@ html[data-theme="dark"] .admin-badge.admin-badge-prioridad-urgente {
     background-color: #40202a;
     border-color: #ff6b6b;
     color: #ffc9c9;
+}
+
+/* Badge de tecnico asignado (Bloque 6B): tinte violeta sobre oscuro */
+html[data-theme="dark"] .admin-badge-tecnico {
+    background-color: #2b2650;
+    color: #b9a8ff;
+}
+
+html[data-theme="dark"] .admin-badge-sin-tecnico {
+    color: #9aa5b1;
 }
 
 html[data-theme="dark"] .admin-vacio {

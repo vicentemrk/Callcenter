@@ -5,6 +5,7 @@ from django.urls import include, path
 from online.views import Index, Inicio, RegisterView, LoginView, ViewRespuestas, logout_view
 from administracion.views import (
     AnalyticsIA,
+    AsignarTecnico,
     BorrarPregunta,
     CerrarPregunta,
     EliminarUsuario,
@@ -34,4 +35,5 @@ urlpatterns = [
     path('ModificarPregunta/<int:idPregunta>/', ModificarPregunta, name='modificar_pregunta'),
     path('CerrarPregunta/<int:idPregunta>/', CerrarPregunta, name='cerrar_pregunta'),
     path('ReabrirPregunta/<int:idPregunta>/', ReabrirPregunta, name='reabrir_pregunta'),
+    path('AsignarTecnico/<int:idPregunta>/', AsignarTecnico, name='asignar_tecnico'),
 ]

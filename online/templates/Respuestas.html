@@ -20,6 +20,14 @@
         <div class="chat-cabecera-badges">
             <span class="admin-badge admin-badge-{{ Pregunta.estado }}">{{ Pregunta.get_estado_display }}</span>
             <span class="admin-badge admin-badge-prioridad-{{ Pregunta.prioridad }}">{{ Pregunta.get_prioridad_display }}</span>
+            {% if Pregunta.tecnico_asignado %}
+            <span class="admin-badge admin-badge-tecnico">
+                <i class="fas fa-user-gear" aria-hidden="true"></i>
+                Técnico: {{ Pregunta.tecnico_asignado.usuario }}
+            </span>
+            {% else %}
+            <span class="admin-badge admin-badge-sin-tecnico">Sin técnico asignado</span>
+            {% endif %}
         </div>
     </div>
     <a class="chat-volver" href="{% if user.rol == 'administrador' or user.rol == 'tecnico' %}{% url 'administracion' %}{% else %}{% url 'inicio' user.id %}{% endif %}">

@@ -3,6 +3,7 @@
 
 {% block links %}
 <link rel="stylesheet" href="{% static 'catalogo.css' %}?v=20261111-c14">
+<link rel="stylesheet" href="{% static 'resenas.css' %}?v=20261118-b5c">
 {% endblock %}
 
 {% block title %}{{ elemento.nombre }} - Catálogo Marvel{% endblock %}
@@ -54,5 +55,152 @@
             </div>
         </div>
     </article>
+
+    {% comment %}Sección de reseñas (Bloque 5C). La visibilidad de las
+    reseñas ocultas se filtra EN EL SERVIDOR (vista Detalle); aquí solo
+    se renderiza lo que el usuario puede ver. El formulario aparece solo
+    para clientes autenticados sin reseña previa del elemento.{% endcomment %}
+    <section class="resenas" id="resenas" aria-labelledby="titulo-resenas">
+        <h2 class="resenas-titulo" id="titulo-resenas">Reseñas</h2>
+
+        {% if resena_publicada %}
+        <p class="resenas-exito" role="status">
+            ¡Reseña publicada! Gracias por compartir tu opinión.
+        </p>
+        {% elif resena_ocultada %}
+        <p class="resenas-aviso" role="status">
+            Reseña oculta por moderación.
+        </p>
+        {% elif resena_restaurada %}
+        <p class="resenas-exito" role="status">
+            Reseña restaurada: vuelve a ser visible para el público.
+        </p>
+        {% endif %}
+
+        {% comment %}Promedio y cantidad SOLO de reseñas visibles
+        (Bloque 5D): una consulta aggregate en el servidor. El promedio
+        existe únicamente en la ficha de detalle.{% endcomment %}
+        {% if total_resenas_visibles > 0 %}
+        <p class="resenas-promedio"
+           role="img"
+           aria-label="Promedio {{ promedio|floatformat:1 }} de 5 estrellas sobre {{ total_resenas_visibles }} reseña{{ total_resenas_visibles|pluralize }}">
+            <span class="resenas-lista-estrellas" aria-hidden="true">
+                {% for _ in ""|center:5 %}
+                <i class="fas fa-star{% if forloop.counter > promedio %} estrella-apagada{% endif %}"></i>
+                {% endfor %}
+            </span>
+            <strong>{{ promedio|floatformat:1 }} / 5 estrellas</strong>
+            <span class="resenas-promedio-total">
+                — {{ total_resenas_visibles }} reseña{{ total_resenas_visibles|pluralize }}
+            </span>
+        </p>
+        {% else %}
+        <p class="resenas-promedio-vacio">Sin calificaciones todavía.</p>
+        {% endif %}
+
+        {% if user.is_authenticated and user.rol == 'cliente' %}
+            {% if ya_resenada %}
+            <p class="resenas-aviso">
+                Ya publicaste una reseña de este título.
+            </p>
+            {% endif %}
+            {% if form %}
+            <form method="post" action="#resenas" class="resenas-form" novalidate>
+                {% csrf_token %}
+                <fieldset class="resenas-campo">
+                    <legend class="resenas-form-leyenda">Calificación</legend>
+                    {% if form.calificacion.errors %}
+                    <p class="resenas-error">{{ form.calificacion.errors.0 }}</p>
+                    {% endif %}
+                    <div class="resenas-estrellas" role="radiogroup" aria-label="Calificación de 1 a 5 estrellas">
+                        {% for opcion in calificaciones %}
+                        <input class="resenas-estrella-input" type="radio"
+                               name="calificacion"
+                               id="id_calificacion_{{ opcion }}"
+                               value="{{ opcion }}"
+                               {% if form.calificacion.value|stringformat:"s" == opcion|stringformat:"s" %}checked{% endif %}>
+                        <label class="resenas-estrella" for="id_calificacion_{{ opcion }}">
+                            <i class="fas fa-star" aria-hidden="true"></i>
+                            <span class="visually-hidden">{{ opcion }} estrella{% if opcion > 1 %}s{% endif %}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                <div class="resenas-campo">
+                    <label class="resenas-form-leyenda" for="{{ form.referencia_tematica.id_for_label }}">
+                        {{ form.referencia_tematica.label }}
+                    </label>
+                    {{ form.referencia_tematica }}
+                    {% if form.referencia_tematica.errors %}
+                    <p class="resenas-error">{{ form.referencia_tematica.errors.0 }}</p>
+                    {% endif %}
+                    <p class="resenas-ayuda">Entre 10 y 200 caracteres. Ej.: una cita, un personaje o una escena que quieras destacar.</p>
+                </div>
+                {% if form.non_field_errors %}
+                <p class="resenas-error">{{ form.non_field_errors.0 }}</p>
+                {% endif %}
+                <button type="submit" class="resenas-enviar">
+                    <i class="fas fa-star" aria-hidden="true"></i> Publicar reseña
+                </button>
+            </form>
+            {% endif %}
+        {% elif not user.is_authenticated %}
+            <p class="resenas-login">
+                <i class="fas fa-right-to-bracket" aria-hidden="true"></i>
+                <a href="{% url 'Login' %}">Inicia sesión</a> para publicar una reseña.
+            </p>
+        {% endif %}
+        {% comment %}Técnicos y administradores no publican: sin formulario
+        ni enlace (el servidor también rechaza su POST con 403).{% endcomment %}
+
+        {% if resenas %}
+        {% for resena in resenas %}
+        <article class="resenas-item{% if not resena.visible %} resenas-item-oculta{% endif %}">
+            <header class="resenas-item-cabecera">
+                <span class="resenas-autor">{{ resena.usuario.usuario }}</span>
+                <span class="resenas-lista-estrellas"
+                      role="img"
+                      aria-label="Calificación: {{ resena.calificacion }} de 5 estrellas">
+                    {% for _ in ""|center:5 %}
+                    <i class="fas fa-star{% if forloop.counter > resena.calificacion %} estrella-apagada{% endif %}" aria-hidden="true"></i>
+                    {% endfor %}
+                </span>
+                {% if not resena.visible %}
+                <span class="resenas-badge-oculta">Oculta por moderación</span>
+                {% endif %}
+                <time class="resenas-fecha" datetime="{{ resena.fecha_publicacion|date:'Y-m-d H:i' }}">
+                    {{ resena.fecha_publicacion|date:'d/m/Y H:i' }}
+                </time>
+            </header>
+            <p class="resenas-referencia">{{ resena.referencia_tematica }}</p>
+            {% if user.rol == 'administrador' %}
+            {% comment %}Moderación (Bloque 5D): SOLO admin, SOLO POST
+            con CSRF; la accion vive en la ruta, no en un parámetro
+            libre. Ni técnicos ni clientes la ven.{% endcomment %}
+            <form class="resenas-moderar" method="post"
+                  action="{% if resena.visible %}{% url 'marvel:ocultar_resena' elemento.pk resena.pk %}{% else %}{% url 'marvel:restaurar_resena' elemento.pk resena.pk %}{% endif %}">
+                {% csrf_token %}
+                <button type="submit" class="resenas-boton-moderar"
+                        {% if resena.visible %}
+                        aria-label="Ocultar la reseña de {{ resena.usuario.usuario }}"
+                        {% else %}
+                        aria-label="Restaurar la reseña de {{ resena.usuario.usuario }}"
+                        {% endif %}>
+                    {% if resena.visible %}
+                    <i class="fas fa-eye-slash" aria-hidden="true"></i> Ocultar
+                    {% else %}
+                    <i class="fas fa-rotate-left" aria-hidden="true"></i> Restaurar
+                    {% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </article>
+        {% endfor %}
+        {% else %}
+        <p class="resenas-vacio">
+            Todavía no hay reseñas de este título. ¡Sé el primero en opinar!
+        </p>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

@@ -94,6 +94,8 @@ def mapear_elemento(tipo, registro):
     nombre = _texto(registro.get('title'))
     descripcion = _texto(registro.get('overview'))
     imagen = _texto(registro.get('cover_url'))
+    if tipo == 'movie' and registro.get('id') == 76 and not imagen:
+        imagen = '/static/img/marvel/untitled-x-men.jpg'
     fecha_estreno = _fecha(registro.get('release_date'))
     fase = _fase(registro.get('phase'))
     saga = _texto(registro.get('saga'))

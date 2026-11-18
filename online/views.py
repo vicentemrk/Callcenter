@@ -23,11 +23,36 @@ def _redirigir_por_rol(usuario):
 # Vista para la página principal
 def Index(request):
     """
-    Página principal del sitio
+    Página principal del sitio. Desde el Bloque 2C es visible para
+    visitantes y usuarios de cualquier rol, sin redirección automática:
+    el acceso a cada panel queda en la navegación del header y en los
+    CTA de esta página. Las redirecciones por rol se conservan después
+    del login/registro y en los flujos protegidos.
     """
-    if request.user.is_authenticated:
-        return _redirigir_por_rol(request.user)
-    return render(request, "index.html")
+    peliculas_destacadas = (
+        ElementoCatalogo.objects
+        .filter(activo=True, tipo='movie', mcu_id__in=[22, 19, 16, 29, 39, 1])
+        .only('id', 'mcu_id', 'nombre', 'imagen')
+    )
+    elementos_por_id = {elemento.mcu_id: elemento for elemento in peliculas_destacadas}
+    configuracion_carrusel = [
+        (22, 'Avengers: Endgame', 'img/marvel/avengers-endgame.jpg'),
+        (19, 'Avengers: Infinity War', 'img/marvel/avengers-infinity-war.jpg'),
+        (16, 'Spider-Man: Homecoming', 'img/marvel/spider-man-homecoming.jpg'),
+        (29, 'Thor: Love and Thunder', 'img/marvel/thor-love-and-thunder.jpg'),
+        (39, 'Avengers: Doomsday', 'img/marvel/avengers-doomsday.jpg'),
+        (1, 'Iron Man', 'img/marvel/iron-man-poster.jpg'),
+    ]
+    carrusel = []
+    for mcu_id, nombre, recurso in configuracion_carrusel:
+        elemento = elementos_por_id.get(mcu_id)
+        carrusel.append({
+            'elemento': elemento,
+            'nombre': nombre,
+            'recurso': recurso,
+        })
+
+    return render(request, "index.html", {'carrusel_peliculas': carrusel})
 
 # Vista para logout personalizada
 @require_POST
@@ -118,7 +143,8 @@ def ViewRespuestas(request, idUser, idPregunta):
     """
     try:
         pregunta = Preguntas.objects.select_related(
-            'elemento_catalogo'
+            'elemento_catalogo',
+            'tecnico_asignado',
         ).get(idPregunta=idPregunta)
         if not (
             request.user.id == pregunta.Usuario_id

@@ -92,6 +92,40 @@ def AnalyticsIA(request):
 @login_required
 @require_POST
 @rol_requerido('administrador', 'tecnico', destino='inicio')
+def AsignarTecnico(request, idPregunta):
+    """Asigna, reasigna o desasigna el tecnico de una pregunta (6B).
+
+    - SOLO POST (GET -> 405 por el require_POST) y solo admin/tecnico
+      (cliente -> redirect a su inicio; visitante -> login).
+    - El tecnico destino del POST SOLO se acepta para el administrador
+      ('' = desasignar); un tecnico SIEMPRE se autoasigna con
+      request.user: se descarta el identificador que traiga el POST y
+      el servicio lo re-valida.
+    - La logica vive en servicios.tickets.asignar (transaccion,
+      select_for_update, auditoria).
+    """
+    if request.user.rol == 'tecnico':
+        pedido = request.POST.get('tecnico_id')
+        if pedido not in (None, '') and pedido != str(request.user.id):
+            messages.error(
+                request, 'Un técnico solo puede autoasignarse el ticket.'
+            )
+            return redirect('administracion')
+        tecnico_id = request.user.id
+    else:
+        tecnico_id = request.POST.get('tecnico_id') or None
+    try:
+        ok, mensaje = tickets.asignar(idPregunta, request.user, tecnico_id)
+    except Preguntas.DoesNotExist:
+        messages.error(request, "La pregunta no existe.")
+        return redirect('administracion')
+    (messages.success if ok else messages.error)(request, mensaje)
+    return redirect('administracion')
+
+
+@login_required
+@require_POST
+@rol_requerido('administrador', 'tecnico', destino='inicio')
 def CerrarPregunta(request, idPregunta):
     """Cierra una pregunta."""
     return _ejecutar_ticket(

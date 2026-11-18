@@ -100,7 +100,9 @@ class Command(BaseCommand):
 
         self.stdout.write('')
         self.stdout.write('=== Prueba de respuesta ===')
-        consulta = '¿Cómo mejoro los FPS de mi juego?'
+        consulta = (
+            '¿La serie Loki aparece en el catálogo de CallCenterGamer?'
+        )
         inicio = time.perf_counter()
         respuesta = asistente.generar_respuesta_automatica(consulta)
         latencia_ms = (time.perf_counter() - inicio) * 1000
@@ -116,7 +118,10 @@ class Command(BaseCommand):
 
         self.stdout.write('')
         self.stdout.write('=== Prueba de clasificacion ===')
-        preguntas = ['No funciona el mouse', 'Tengo ping alto y lag']
+        preguntas = [
+            '¿Cuándo llega la figura de Iron Man al catálogo?',
+            '¿Cómo cambio la contraseña de mi cuenta?',
+        ]
         inicio = time.perf_counter()
         categorias = asistente.clasificar_preguntas(preguntas)
         latencia_ms = (time.perf_counter() - inicio) * 1000

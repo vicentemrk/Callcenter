@@ -1,0 +1,154 @@
+PROYECTO: CallCenterGamer - tema Marvel
+Ultima actualizacion: 18-11-2026
+
+===============================================================================
+RESUMEN DEL PROYECTO
+===============================================================================
+
+CallCenterGamer es una plataforma de atención al cliente integrada con un
+catálogo de películas y series Marvel.
+
+La plataforma permite:
+- Crear consultas y tickets.
+- Buscar películas y series.
+- Ver fichas de detalle.
+- Vincular consultas con títulos del catálogo.
+- Responder tickets y seguir su estado.
+- Publicar reseñas sobre películas y series.
+- Administrar usuarios y asignar técnicos.
+- Usar un asistente virtual temático.
+
+===============================================================================
+CAMBIOS COMPLETADOS
+===============================================================================
+
+1. Identidad visual
+-------------------
+[x] Tema negro y rojo Marvel en toda la aplicación.
+[x] Tema oscuro como opción predeterminada y tema claro disponible.
+[x] Header actualizado con el nombre CallCenterGamer.
+[x] Footer colocado al final del documento, sin quedarse flotando.
+[x] Navegación adaptada según visitante, cliente, técnico o administrador.
+[x] Identidad actualizada en los títulos y textos visibles de las landings.
+
+2. Catálogo Marvel
+------------------
+[x] Catálogo de 75 películas y 56 series.
+[x] Los personajes fueron retirados del catálogo.
+[x] Búsqueda, filtros por tipo y fase, paginación y fichas de detalle.
+[x] Películas y series sincronizadas desde MCU API hacia la base local.
+[x] La navegación no consulta la API externa; usa los datos locales.
+[x] Elementos inactivos no aparecen al público.
+[x] Se agregó una imagen de respaldo para "Untitled X-Men film".
+
+3. Landing pages
+----------------
+[x] Página principal "/": presenta CallCenterGamer y sus funciones.
+[x] Página Universo Marvel "/marvel/": presenta el universo y el catálogo.
+[x] Accesos por rol: panel, mis consultas, catálogo y registros.
+[x] Landing principal con póster de WandaVision.
+[x] Carrusel de películas destacadas en la landing principal.
+[x] Landing Universo con pósteres de:
+    - Iron Man
+    - Capitán América
+    - Thor
+    - Hulk
+    - Scarlet Witch
+    - Loki
+[x] Se retiraron las imágenes de gatos y los retratos de actores.
+
+4. Categorías de consultas
+--------------------------
+[x] Videojuegos.
+[x] Merchandising.
+[x] Películas.
+[x] Series.
+[x] Comics.
+[x] Figuras y juguetes.
+[x] Eventos.
+[x] Cuenta.
+[x] Pagos.
+[x] Otros.
+
+Las categorías se leen desde una sola configuración central y no están
+repetidas en las plantillas.
+
+5. Asistente virtual
+--------------------
+[x] Prompts adaptados al contexto Marvel.
+[x] Diferencia entre videojuegos Marvel y soporte técnico.
+[x] Clasificación entre películas, series, comics, cuenta y pagos.
+[x] Se conservaron los mensajes de respaldo si falla el servicio externo.
+
+6. Reseñas
+----------
+[x] Solo clientes autenticados pueden publicar reseñas.
+[x] Calificación obligatoria de 1 a 5 estrellas.
+[x] Referencia temática obligatoria de 10 a 200 caracteres.
+[x] Máximo una reseña por usuario y elemento.
+[x] Visitantes y técnicos ven solo reseñas visibles.
+[x] Los clientes ven las suyas aunque estén ocultas.
+[x] Los administradores pueden ver, ocultar y restaurar reseñas.
+[x] Promedio y cantidad de reseñas visibles en la ficha de detalle.
+
+7. Técnicos y tickets
+---------------------
+[x] Los administradores pueden asignar, reasignar o desasignar técnicos.
+[x] Los técnicos pueden asignarse sus propios tickets.
+[x] Los tickets cerrados no permiten cambios de asignación hasta reabrirse.
+[x] Se muestran badges del técnico en el panel y en las fichas.
+[x] Existe filtro por técnico asignado.
+[x] Se registran las acciones de asignación.
+
+8. Datos de demostración
+------------------------
+[x] 6 usuarios demo: 1 administrador, 2 técnicos y 3 clientes.
+[x] 15 tickets demo con categorías, estados y prioridades variadas.
+[x] Respuestas del equipo de atención.
+[x] 12 reseñas demo: 10 visibles y 2 ocultas.
+[x] Todos los datos demo están cargados directamente en db.sqlite3.
+[x] Las cuentas demo usan contraseñas temporales 1234.
+
+9. Calidad y pruebas
+--------------------
+[x] Se redujeron pruebas duplicadas o irrelevantes.
+[x] Se agregaron pruebas para roles, permisos, rutas y reseñas.
+[x] Se verificaron migraciones pendientes y el sistema Django.
+[x] Se probó el funcionamiento básico de las landings.
+
+===============================================================================
+ARCHIVOS PRINCIPALES
+===============================================================================
+
+- online/templates/index.html
+  Landing principal de CallCenterGamer.
+
+- marvel/templates/marvel/universo.html
+  Landing del Universo Marvel.
+
+- marvel/templates/marvel/catalogo.html
+  Catálogo de películas y series.
+
+- marvel/templates/marvel/detalle.html
+  Ficha individual de cada título.
+
+- online/templates/componentes/header.html
+  Header, nombre de la plataforma y footer.
+
+- online/ia_utils.py
+  Configuración del asistente virtual y su clasificación.
+
+- marvel/services.py
+  Sincronización y transformación de datos desde MCU API.
+
+- marvel/views.py
+  Vistas del catálogo, landing y reseñas.
+
+- marvel/models.py
+  Elementos del catálogo y reseñas.
+
+- administracion/servicios/tickets.py
+  Asignación y gestión de técnicos.
+
+- cambios_marvel.txt
+  Resumen breve de los cambios realizados.

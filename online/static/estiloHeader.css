@@ -13,13 +13,16 @@ body {
     background-color: #f8f9fa;
     display: flex;
     flex-direction: column;
-    padding-bottom: 132px;
 }
 
+/* Contexto de posicionamiento para las tarjetas centradas de Login y
+   Registro: se centran dentro del area disponible entre la nav y el footer
+   (y no respecto del viewport), de modo que nunca invaden el footer. */
 main {
     display: flow-root;
     flex: 1 0 auto;
     width: 100%;
+    position: relative;
 }
 
 /* Barra plana: un solo violeta y borde inferior de 1px. */
@@ -267,7 +270,7 @@ main {
     margin-top: 100px;
 }
 
-#btnIngresar {
+.btnPrincipal {
     font-family: "DM Sans", sans-serif;
     cursor: pointer;
     background-color: #673de6;
@@ -281,26 +284,31 @@ main {
     font-size: 1em;
 }
 
-#btnIngresar:hover {
+.btnPrincipal:hover {
     background-color: #4E31E1;
     border-color: #3b22b8;
 }
 
+/* Varios CTA en fila (Ingresar + Registrarse) no quedan pegados */
+.contBtn .btnPrincipal + .btnPrincipal {
+    margin-left: 16px;
+}
+
 /* El ingreso es un enlace: conserva el aspecto del botón anterior */
-a#btnIngresar {
+a.btnPrincipal {
     display: inline-block;
     text-align: center;
     text-decoration: none;
     line-height: 40px;
 }
 
-a#btnIngresar:focus-visible {
+a.btnPrincipal:focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 3px;
 }
 
 /* Sobre el bloque claro final el foco blanco no se vería */
-.finalBody a#btnIngresar:focus-visible {
+.finalBody a.btnPrincipal:focus-visible {
     outline-color: #4E31E1;
 }
 
@@ -366,19 +374,19 @@ a#btnIngresar:focus-visible {
     color: #555;
 }
 
+/* Footer en el flujo del documento: el body ya es flex column con
+   min-height 100vh y main crece (flex: 1 0 auto), por lo que el footer
+   queda pegado al fondo en paginas cortas y despues del contenido en las
+   largas. Sin position: fixed ni padding compensatorio en el body. */
 .site-footer {
-    position: fixed;
-    z-index: 1001;
-    left: 50%;
-    bottom: 24px;
-    transform: translateX(-50%);
-    width: min(92%, 1320px);
+    margin-top: auto;
+    width: 100%;
     padding: 16px clamp(22px, 4vw, 40px);
     color: #f4f7fb;
     background-color: #14213d;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-top: 4px solid #25c2b5;
-    border-radius: 14px;
+    border-radius: 0;
 }
 
 .footer-content {
@@ -417,15 +425,8 @@ a#btnIngresar:focus-visible {
 }
 
 @media (max-width: 900px) {
-    body {
-        padding-bottom: 176px;
-    }
-
     .site-footer {
-        bottom: 14px;
-        width: calc(100% - 28px);
         padding: 14px 18px;
-        border-radius: 12px;
     }
 
     .footer-content {

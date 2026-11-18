@@ -1,0 +1,159 @@
+{% extends "componentes/header.html" %}
+{% load static %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'universo.css' %}?v=20261118-marvel-api">
+{% endblock %}
+
+{% block title %}Universo Marvel{% endblock %}
+
+{% block content %}
+{% comment %}Landing Universo Marvel. Publica, sin CTAs de cuenta ni tickets:
+ese es el propósito de la landing principal "/". Las imágenes se sirven
+localmente para evitar depender de servicios externos al navegar.{% endcomment %}
+<section class="universo-hero">
+    <p class="universo-etiqueta">Películas, series e historias del MCU</p>
+    <h1>Universo <strong>Marvel</strong></h1>
+    <p class="universo-hero-descripcion">
+        Recorre las películas y series de Marvel registradas en nuestro
+        catálogo: héroes, sagas y fases conectadas en un solo lugar.
+    </p>
+    <div class="universo-botones">
+        <a class="btnPrincipal universo-boton" id="ctaUniversoCatalogo"
+           href="{% url 'marvel:catalogo' %}">Explorar catálogo</a>
+        <a class="universo-boton-secundario" id="ctaUniversoPeliculas"
+           href="{% url 'marvel:catalogo' %}?tipo=peliculas">Películas</a>
+        <a class="universo-boton-secundario" id="ctaUniversoSeries"
+           href="{% url 'marvel:catalogo' %}?tipo=series">Series</a>
+    </div>
+</section>
+
+<section class="universo-seccion" aria-labelledby="titulo-personajes">
+    <h2 class="universo-titulo" id="titulo-personajes">Protagonistas del universo</h2>
+    <p class="universo-intro">
+        Descubre pósteres de héroes, villanos y sagas que forman parte
+        de las películas y series del universo Marvel.
+    </p>
+    {% comment %}Galería visual local de 6 pósteres del universo Marvel.
+    No depende de una llamada externa al navegar.{% endcomment %}
+    <ul class="universo-galeria">
+        <li><img src="{% static 'img/marvel/iron-man-poster.jpg' %}"
+                 alt="Póster de Iron Man"
+                 loading="lazy" width="500" height="500"></li>
+        <li><img src="{% static 'img/marvel/captain-america-poster.jpg' %}"
+                 alt="Póster de Capitán América: El primer vengador"
+                 loading="lazy" width="500" height="500"></li>
+        <li><img src="{% static 'img/marvel/thor-poster.jpg' %}"
+                 alt="Póster de Thor"
+                 loading="lazy" width="500" height="500"></li>
+        <li><img src="{% static 'img/marvel/hulk-poster.jpg' %}"
+                 alt="Póster de El increíble Hulk"
+                 loading="lazy" width="500" height="500"></li>
+        <li><img src="{% static 'img/marvel/scarlet-witch-poster.jpg' %}"
+                 alt="Póster de Doctor Strange en el multiverso de la locura"
+                 loading="lazy" width="500" height="500"></li>
+        <li><img src="{% static 'img/marvel/loki-poster.jpg' %}"
+                 alt="Póster de la serie Loki"
+                 loading="lazy" width="500" height="500"></li>
+    </ul>
+</section>
+
+{% if peliculas_destacadas or series_destacadas %}
+<section class="universo-seccion" aria-labelledby="titulo-destacados">
+    <h2 class="universo-titulo" id="titulo-destacados">Del catálogo</h2>
+    <p class="universo-intro">
+        Explora títulos seleccionados del catálogo. Cada tarjeta lleva
+        directamente a su ficha de detalle.
+    </p>
+
+    {% if peliculas_destacadas %}
+    <h3 class="universo-subtitulo">Proximas Películas destacadas</h3>
+    <div class="universo-destacados">
+        {% for elemento in peliculas_destacadas %}
+        <a class="universo-ficha" href="{% url 'marvel:detalle' elemento.pk %}">
+            <div class="universo-ficha-imagen">
+                {% if elemento.imagen %}
+                <img src="{{ elemento.imagen }}" alt="{{ elemento.nombre }}" loading="lazy">
+                {% else %}
+                <i class="fas fa-film" aria-hidden="true"></i>
+                {% endif %}
+            </div>
+            <div class="universo-ficha-cuerpo">
+                <h3>{{ elemento.nombre }}</h3>
+                <p>
+                    {% if elemento.fase %}Fase {{ elemento.fase }}{% endif %}
+                    {% if elemento.fecha_estreno %} · {{ elemento.fecha_estreno|date:"Y" }}{% endif %}
+                </p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if series_destacadas %}
+    <h3 class="universo-subtitulo">Series destacadas</h3>
+    <div class="universo-destacados">
+        {% for elemento in series_destacadas %}
+        <a class="universo-ficha" href="{% url 'marvel:detalle' elemento.pk %}">
+            <div class="universo-ficha-imagen">
+                {% if elemento.imagen %}
+                <img src="{{ elemento.imagen }}" alt="{{ elemento.nombre }}" loading="lazy">
+                {% else %}
+                <i class="fas fa-tv" aria-hidden="true"></i>
+                {% endif %}
+            </div>
+            <div class="universo-ficha-cuerpo">
+                <h3>{{ elemento.nombre }}</h3>
+                <p>
+                    {% if elemento.fase %}Fase {{ elemento.fase }}{% endif %}
+                    {% if elemento.fecha_estreno %} · {{ elemento.fecha_estreno|date:"Y" }}{% endif %}
+                </p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+
+<section class="universo-seccion" aria-labelledby="titulo-explorar">
+    <h2 class="universo-titulo" id="titulo-explorar">Explora por tipo</h2>
+    <p class="universo-intro">
+        El catálogo completo, con búsqueda y filtros, siempre disponible.
+    </p>
+    <div class="universo-accesos">
+        <a class="universo-acceso" href="{% url 'marvel:catalogo' %}?tipo=peliculas">
+            <i class="fas fa-film" aria-hidden="true"></i>
+            <div>
+                <strong>Películas</strong>
+                <span>Ver todas las películas del catálogo</span>
+            </div>
+        </a>
+        <a class="universo-acceso" href="{% url 'marvel:catalogo' %}?tipo=series">
+            <i class="fas fa-tv" aria-hidden="true"></i>
+            <div>
+                <strong>Series</strong>
+                <span>Ver todas las series del catálogo</span>
+            </div>
+        </a>
+        <a class="universo-acceso" href="{% url 'marvel:catalogo' %}">
+            <i class="fas fa-shield-halved" aria-hidden="true"></i>
+            <div>
+                <strong>Catálogo completo</strong>
+                <span>Búsqueda, filtros por fase y fichas de detalle</span>
+            </div>
+        </a>
+    </div>
+</section>
+
+<section class="universo-cta-final">
+    <h2>¿Ya tienes un favorito?</h2>
+    <p>Encuéntralo en el catálogo y, si tienes dudas sobre el título, crea una consulta desde su ficha: nuestro equipo te responde.</p>
+    <div class="universo-botones">
+        <a class="btnPrincipal universo-boton" id="ctaUniversoCatalogoFinal"
+           href="{% url 'marvel:catalogo' %}">Explorar catálogo</a>
+    </div>
+</section>
+
+<div class="universo-cierre" aria-hidden="true"></div>
+{% endblock %}

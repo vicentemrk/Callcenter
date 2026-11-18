@@ -7,14 +7,16 @@
       bloquea (modo privado, cookies restringidas) el tema sigue funcionando
       solo durante la visita, sin lanzar errores en consola.
    3. Actualizar el icono de Font Awesome, aria-pressed, title y aria-label.
-   4. Si la persona nunca eligió un tema, seguir en vivo el cambio de
-      preferencia del sistema operativo.
-   El tema inicial lo aplica el script inline del <head> (evita el parpadeo).
+   El tema inicial lo aplica el script inline del <head> (evita el parpadeo):
+   sin preferencia guardada el tema por defecto es el OSCURO (identidad
+   Marvel, Bloque 2A); ya no se sigue la preferencia del sistema operativo,
+   que ahora solo importa si la persona elige el modo claro.
    ========================================================================== */
 (function () {
     'use strict';
 
     var CLAVE = 'tema';
+    var TEMA_POR_DEFECTO = 'dark';
     var raiz = document.documentElement;
 
     /* Lee la preferencia guardada. Devuelve null si no hay o si falla. */
@@ -36,24 +38,12 @@
         }
     }
 
-    /* Preferencia del sistema operativo. */
-    function temaDelSistema() {
-        try {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                return 'dark';
-            }
-        } catch (error) {
-            /* Navegador sin matchMedia: usamos el tema claro. */
-        }
-        return 'light';
-    }
-
     function temaActual() {
         var actual = raiz.getAttribute('data-theme');
         if (actual === 'dark' || actual === 'light') {
             return actual;
         }
-        return leerGuardado() || temaDelSistema();
+        return leerGuardado() || TEMA_POR_DEFECTO;
     }
 
     /* Sincroniza el botón con el tema activo: icono, estado y textos. */
@@ -96,23 +86,6 @@
 
         for (var i = 0; i < botones.length; i++) {
             botones[i].addEventListener('click', alternar);
-        }
-
-        /* Sin elección guardada, seguimos la preferencia del sistema. */
-        try {
-            var consulta = window.matchMedia('(prefers-color-scheme: dark)');
-            var alCambiar = function (evento) {
-                if (leerGuardado() === null) {
-                    aplicar(evento.matches ? 'dark' : 'light');
-                }
-            };
-            if (consulta.addEventListener) {
-                consulta.addEventListener('change', alCambiar);
-            } else if (consulta.addListener) {
-                consulta.addListener(alCambiar);
-            }
-        } catch (error) {
-            /* Sin soporte de matchMedia: no hay nada que escuchar. */
         }
     }
 

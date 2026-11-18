@@ -106,6 +106,16 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="admin-field">
+                <label for="filtro-tecnico">Técnico</label>
+                <select id="filtro-tecnico" name="tecnico">
+                    <option value="">Todos</option>
+                    <option value="sin_asignar" {% if filtros.tecnico == 'sin_asignar' %}selected{% endif %}>Sin asignar</option>
+                    {% for tecnico in tecnicos_disponibles %}
+                    <option value="{{ tecnico.id|stringformat:'s' }}" {% if filtros.tecnico == tecnico.id|stringformat:'s' %}selected{% endif %}>{{ tecnico.usuario }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="admin-field admin-field-acciones">
                 <button type="submit" class="admin-btn">
                     <i class="fas fa-magnifying-glass" aria-hidden="true"></i> Buscar
@@ -115,7 +125,7 @@
         </form>
 
         <div class="admin-chips" aria-label="Filtros aplicados">
-            {% if q or filtros.estado or filtros.prioridad or filtros.categoria %}
+            {% if q or filtros.estado or filtros.prioridad or filtros.categoria or filtros.tecnico %}
                 {% if q %}
                 <a class="admin-chip" href="{% querystring q=None page=None %}"
                    aria-label="Quitar el filtro de búsqueda «{{ q }}»">
@@ -146,6 +156,21 @@
                     </a>
                     {% endif %}
                 {% endfor %}
+                {% if filtros.tecnico == 'sin_asignar' %}
+                <a class="admin-chip" href="{% querystring tecnico=None page=None %}"
+                   aria-label="Quitar el filtro de técnico sin asignar">
+                    Técnico: Sin asignar<span class="admin-chip-x" aria-hidden="true">&times;</span>
+                </a>
+                {% else %}
+                {% for tecnico in tecnicos_disponibles %}
+                    {% if filtros.tecnico == tecnico.id|stringformat:'s' %}
+                    <a class="admin-chip" href="{% querystring tecnico=None page=None %}"
+                       aria-label="Quitar el filtro de técnico {{ tecnico.usuario }}">
+                        Técnico: {{ tecnico.usuario }}<span class="admin-chip-x" aria-hidden="true">&times;</span>
+                    </a>
+                    {% endif %}
+                {% endfor %}
+                {% endif %}
             {% else %}
                 <span class="admin-chip admin-chip-idle">Todos</span>
             {% endif %}
@@ -171,7 +196,7 @@
         {% if total_filtrado == 0 %}
         <div class="admin-vacio">
             <i class="fas fa-inbox" aria-hidden="true"></i>
-            {% if q or filtros.estado or filtros.prioridad or filtros.categoria %}
+            {% if q or filtros.estado or filtros.prioridad or filtros.categoria or filtros.tecnico %}
                 <h3>No hay preguntas que coincidan con los filtros</h3>
                 <p>Prueba con otro término de búsqueda o quita los filtros aplicados.</p>
                 <a class="admin-btn" href="{% url 'administracion' %}">Limpiar filtros</a>
@@ -192,6 +217,7 @@
                         <th scope="col">Categoría</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Prioridad</th>
+                        <th scope="col">Técnico</th>
                         <th scope="col" class="admin-col-num">Respuestas</th>
                         <th scope="col">Fecha</th>
                         <th scope="col">Acciones</th>
@@ -224,6 +250,49 @@
                             <span class="admin-badge admin-badge-prioridad-{{ pregunta.prioridad }}">
                                 {{ pregunta.get_prioridad_display }}
                             </span>
+                        </td>
+                        <td class="admin-celda-tecnico">
+                            {% if pregunta.tecnico_asignado %}
+                            <span class="admin-badge admin-badge-tecnico"
+                                  title="Técnico asignado: {{ pregunta.tecnico_asignado.usuario }}">
+                                <i class="fas fa-user-gear" aria-hidden="true"></i>
+                                {{ pregunta.tecnico_asignado.usuario }}
+                            </span>
+                            {% else %}
+                            <span class="admin-badge admin-badge-sin-tecnico">Sin asignar</span>
+                            {% endif %}
+                            {% if pregunta.estado != 'cerrado' %}
+                                {% if user.rol == 'administrador' %}
+                                {% comment %}Asignar/reasignar/desasignar
+                                (6B): SOLO POST con CSRF; la opcion vacia
+                                desasigna. El servidor valida rol, estado
+                                activo y ticket no cerrado.{% endcomment %}
+                                <form method="post"
+                                      action="{% url 'asignar_tecnico' pregunta.idPregunta %}"
+                                      class="admin-asignar-form">
+                                    {% csrf_token %}
+                                    <label class="admin-sr-only" for="tecnico-{{ pregunta.idPregunta }}">Técnico para la pregunta {{ pregunta.Titulo }}</label>
+                                    <select id="tecnico-{{ pregunta.idPregunta }}" name="tecnico_id">
+                                        <option value="" {% if not pregunta.tecnico_asignado %}selected{% endif %}>Desasignar</option>
+                                        {% for tecnico in tecnicos_disponibles %}
+                                        <option value="{{ tecnico.id }}" {% if pregunta.tecnico_asignado_id == tecnico.id %}selected{% endif %}>{{ tecnico.usuario }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="admin-btn admin-btn-mini">Asignar</button>
+                                </form>
+                                {% elif user.rol == 'tecnico' %}
+                                    {% if not pregunta.tecnico_asignado %}
+                                    <form method="post"
+                                          action="{% url 'asignar_tecnico' pregunta.idPregunta %}"
+                                          class="admin-asignar-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="admin-btn admin-btn-mini">Autoasignarme</button>
+                                    </form>
+                                    {% elif pregunta.tecnico_asignado_id == user.id %}
+                                    <span class="admin-tecnico-propio">Tu asignación</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
                         </td>
                         <td class="admin-col-num">
                             <span class="admin-num-respuestas" title="{{ pregunta.num_respuestas }} respuesta{{ pregunta.num_respuestas|pluralize:"s" }}">
