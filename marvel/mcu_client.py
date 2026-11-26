@@ -82,7 +82,7 @@ ERRORES_HTTP = {
 
 class MCUAPIClient:
     """Cliente HTTP GET para MCU API. Pensado para ser reutilizado por el
-    proceso de sincronizacion de la Fase B3 (aun no implementado).
+    proceso de sincronizacion.
     """
 
     def __init__(
@@ -228,7 +228,7 @@ class MCUAPIClient:
         return datos
 
     # ------------------------------------------------------------------
-    # Endpoints publicos (todos confirmados en Etapa 2)
+    # Endpoints publicos
     # ------------------------------------------------------------------
     def _listar(self, ruta, page, limit, filtros):
         if page < 1 or not 1 <= int(limit) <= LIMIT_MAXIMO:

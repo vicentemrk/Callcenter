@@ -88,3 +88,68 @@ ARCHIVOS PRINCIPALES
 - marvel/views.py: navegación y reseñas.
 - marvel/models.py: películas, series y reseñas.
 - administracion/servicios/tickets.py: asignación de técnicos.
+
+GUÍA SIMPLE DEL PROGRAMA
+------------------------
+
+1. Punto de entrada
+   CallCenterGamer/urls.py recibe las direcciones web. Por ejemplo, "/" abre
+   la landing principal y "/marvel/catalogo/" abre el catálogo.
+
+2. Usuarios y sesiones
+   online/models.py define usuarios, clientes, técnicos y administradores.
+   online/views.py controla registro, inicio de sesión, cierre de sesión,
+   tickets del cliente y respuestas.
+   online/forms.py valida los datos que se escriben en estos formularios.
+
+3. Catálogo Marvel
+   marvel/models.py guarda películas, series e imágenes.
+   marvel/views.py muestra el catálogo, las fichas y las reseñas.
+   marvel/urls.py define las rutas /marvel/, /marvel/catalogo/ y detalle.
+   marvel/services.py convierte los datos recibidos desde MCU API para guardar
+   solo películas y series.
+   marvel/mcu_client.py se comunica con MCU API. La navegación normalmente
+   lee la base local y no necesita llamar a Internet.
+
+4. Landing principal
+   online/templates/index.html define la página "/" y el carrusel.
+   online/views.py prepara las películas que aparecen en el carrusel.
+   online/static/landing.css controla el diseño y responsive del carrusel.
+   online/static/img/marvel/ guarda los pósteres locales.
+
+5. Landing Universo Marvel
+   marvel/templates/marvel/universo.html muestra el universo Marvel.
+   marvel/static/universo.css define su diseño.
+   Esta página muestra títulos destacados desde la base local.
+
+6. Tickets y atención
+   online/models.py guarda preguntas y respuestas.
+   administracion/views.py recibe las acciones del panel administrativo.
+   administracion/servicios/tickets.py modifica, cierra, reabre y elimina
+   tickets.
+   administracion/servicios/panel.py prepara las estadísticas y listas.
+
+7. Roles del sistema
+   El cliente crea y sigue sus consultas.
+   El técnico responde y puede asignarse tickets.
+   El administrador gestiona usuarios, tickets y reseñas.
+
+8. Reseñas
+   marvel/forms.py valida la calificación y la referencia temática.
+   marvel/models.py guarda una sola reseña por cliente y título.
+   marvel/views.py decide qué reseñas puede ver cada rol.
+
+9. Asistente virtual
+   online/ia_utils.py genera respuestas y clasifica categorías.
+   online/recomendaciones_ia.py ofrece respuestas similares.
+   online/constants.py reúne las categorías disponibles.
+
+10. Plantillas visuales
+    online/templates/componentes/header.html contiene el menú y el footer.
+    online/templates/inicio.html es el panel del cliente.
+    online/templates/Respuestas.html muestra conversación y respuestas.
+    administracion/templates/ contiene las páginas de administración.
+
+11. Base de datos
+    db.sqlite3 contiene usuarios, tickets, respuestas, películas, series
+    y reseñas. Es el archivo principal que conserva los datos de la demo.

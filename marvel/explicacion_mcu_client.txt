@@ -1,0 +1,160 @@
+APP MARVEL: RESUMEN DE ARCHIVOS Y MCU CLIENT
+
+1. mcu_client.py
+
+Cliente de solo lectura para la API de Marvel (MCU API). Consulta peliculas,
+series, detalles, busquedas y el estado del servidor.
+
+Funciones principales:
+
+- __init__: configura URL, timeout y reintentos.
+- _construir_url: arma la URL con sus parametros.
+- _url_host: obtiene el dominio para usar /health.
+- _leer_error: extrae un mensaje claro desde un error HTTP.
+- _solicitud: realiza GET, convierte la respuesta a JSON y maneja errores,
+  timeouts y reintentos.
+- _requiere_envelope: valida respuestas de listados que tienen "data".
+- _requiere_detalle: valida respuestas individuales que tienen "id".
+- _listar: valida pagina y limite, consulta un listado y valida su respuesta.
+- _obtener: valida el ID y consulta un elemento individual.
+- estado: consulta GET /health.
+- obtener_peliculas: consulta GET /movies.
+- obtener_series: consulta GET /tvshows.
+- obtener_pelicula: consulta una pelicula por ID.
+- obtener_serie: consulta una serie por ID.
+- buscar: busca por texto y, opcionalmente, por tipo.
+
+Las clases MCUAPIError y sus subclases representan errores de timeout,
+conexion, respuesta invalida, parametros incorrectos, recurso inexistente,
+limite de solicitudes y errores del servidor.
+
+
+2. models.py
+
+Define las tablas de la app:
+
+- ElementoCatalogo: guarda peliculas y series sincronizadas desde la API.
+  Incluye nombre, descripcion, imagen, fecha, fase, saga, estado y JSON
+  original. No permite repetir la combinacion tipo + mcu_id.
+- Resena: guarda la calificacion y referencia tematica de un usuario sobre
+  un elemento. Valida que el elemento este activo, que el usuario sea cliente
+  y que no exista otra resena del mismo usuario para el mismo elemento.
+
+
+3. views.py
+
+Contiene las vistas web:
+
+- LandingUniverso: muestra la portada del universo Marvel.
+- Catalogo: muestra el listado local con busqueda, filtros y paginacion.
+- Detalle: muestra una pelicula o serie y permite publicar resenas.
+- ModerarResena: permite al administrador ocultar o restaurar resenas.
+
+Las vistas consultan la base local, no llaman directamente a la MCU API.
+
+
+4. services.py
+
+Contiene la logica de sincronizacion entre la MCU API y la base local.
+
+- mapear_elemento: convierte los nombres de la API a los campos del modelo.
+- guardar_elemento: crea, actualiza o ignora un registro sin cambios.
+- sincronizar_tipo: recorre las paginas de peliculas o series.
+- sincronizar_catalogo: sincroniza varios tipos.
+
+La sincronizacion es idempotente: repetirla no duplica datos.
+
+
+5. forms.py
+
+Define ResenaForm. Permite enviar solamente la calificacion y la referencia
+tematica. El usuario y el elemento se asignan en el servidor.
+
+
+6. validators.py
+
+Valida que la referencia tematica no este vacia y tenga al menos 10
+caracteres despues de quitar espacios en los extremos.
+
+
+7. constants.py
+
+Guarda valores compartidos:
+
+- tipos de elemento: movie y tvshow;
+- URL base de la MCU API;
+- limites de calificacion y referencia de resenas;
+- tipos que pueden recibir resenas.
+
+
+8. urls.py
+
+Define las rutas de la app:
+
+- /marvel/: portada.
+- /marvel/catalogo/: listado.
+- /marvel/<id>/: detalle.
+- rutas para ocultar y restaurar resenas.
+
+
+9. admin.py
+
+Registra ElementoCatalogo en el panel de administracion. Permite listar,
+filtrar, buscar y ordenar los elementos.
+
+
+10. apps.py
+
+Configura la aplicacion Django con el nombre marvel y la etiqueta visible
+Marvel.
+
+
+11. tests.py
+
+Contiene pruebas del mapeo, sincronizacion, catalogo, detalles, resenas y
+permisos. Usa respuestas simuladas para evitar depender de la red.
+
+
+12. management/commands/sincronizar_mcu.py
+
+Agrega el comando:
+
+    python manage.py sincronizar_mcu
+
+Permite sincronizar peliculas, series o ambos tipos. Tambien acepta un limite
+de registros y un tamano de pagina. Informa creados, actualizados, sin cambios
+e incompletos.
+
+
+13. migrations/
+
+Contiene las migraciones de Django que crean y modifican las tablas
+ElementoCatalogo y Resena. Tambien guardan restricciones como las claves
+unicas.
+
+
+14. templates/marvel/
+
+- universo.html: portada del universo Marvel.
+- catalogo.html: listado, filtros, busqueda y paginacion.
+- detalle.html: ficha del elemento y formulario/listado de resenas.
+
+
+15. static/
+
+Contiene los archivos CSS e imagenes usados por las plantillas para el diseño
+del catalogo, el universo Marvel y las resenas.
+
+
+16. __init__.py
+
+Indica que marvel es un paquete Python. No contiene logica adicional.
+
+
+FLUJO RESUMIDO
+
+1. sincronizar_mcu.py solicita datos.
+2. services.py usa mcu_client.py para consultar la API.
+3. services.py guarda los datos en ElementoCatalogo.
+4. views.py lee la base local.
+5. Las plantillas muestran el catalogo y las resenas al usuario.
